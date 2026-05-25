@@ -13,8 +13,9 @@ end-to-end (validation + cache path + Places fetch; only a real
 `GOOGLE_PLACES_API_KEY` is needed for live cafe data).
 
 Local test data and the dev-only test-login button have been removed. A Supabase
-**Cloud** project exists (ref `ndogivynbzrpwcrzsiwb`); `.env` URL points at it, but
-`EXPO_PUBLIC_SUPABASE_ANON_KEY` is still the local key — swap it for the cloud key.
+**Cloud** project exists (ref `ndogivynbzrpwcrzsiwb`) and `.env` now holds the real
+cloud URL + anon key (gitignored). Local Supabase + Expo dev server are stopped
+(local DB persisted in its Docker volume).
 
 Done:
 
@@ -30,19 +31,19 @@ Done:
 
 ## Next steps
 
-### Tomorrow — wire the Cloud project (ref `ndogivynbzrpwcrzsiwb`)
+### Next session — wire the Cloud project (ref `ndogivynbzrpwcrzsiwb`)
 
-1. **Finish `.env`**: set `EXPO_PUBLIC_SUPABASE_ANON_KEY` to the **cloud** anon/publishable
-   key (Dashboard → Project Settings → API). URL already points at cloud.
-2. **Push schema**: `supabase link --project-ref ndogivynbzrpwcrzsiwb` then
+`.env` is already filled with the real cloud URL + anon key. Remaining:
+
+1. **Push schema**: `supabase link --project-ref ndogivynbzrpwcrzsiwb` then
    `supabase db push` (applies the 3 migrations to cloud).
-3. **Google OAuth**: create an OAuth client in Google Cloud Console; in Supabase
+2. **Google OAuth**: create an OAuth client in Google Cloud Console; in Supabase
    Dashboard → Authentication → Providers → Google, paste client id + secret and enable.
    Add `cofinder://**` to the allowed redirect URLs.
-4. **Places**: enable "Places API (New)" + create an API key in Google Cloud;
+3. **Places**: enable "Places API (New)" + create an API key in Google Cloud;
    `supabase secrets set GOOGLE_PLACES_API_KEY=...`; deploy with
    `supabase functions deploy nearby-cafes`.
-5. **Sanity check**: run the app, real Google login → lands on home.
+4. **Sanity check**: run the app, real Google login → lands on home.
 
 ### Feature phase (tasks 11–13) — needs a dev build
 

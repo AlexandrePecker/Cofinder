@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -53,6 +53,14 @@ export default function NearbyScreen() {
         <ThemedText style={[styles.message, { color: theme.textSecondary }]}>
           Permissão de localização necessária para encontrar cafeterias.
         </ThemedText>
+        <Pressable
+          onPress={() => Linking.openSettings()}
+          style={({ pressed }) => [styles.settingsButton, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <ThemedText style={[styles.settingsLabel, { color: theme.primary }]}>
+            Abrir Configurações
+          </ThemedText>
+        </Pressable>
       </ThemedView>
     );
   }
@@ -132,6 +140,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.xl,
+    gap: Spacing.md,
+  },
+  settingsButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+  },
+  settingsLabel: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
   },
   header: {
     paddingHorizontal: Spacing.lg,

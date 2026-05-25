@@ -1,6 +1,8 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
+  Animated,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -19,6 +21,51 @@ import { useAuth } from '@/features/auth/auth-context';
 import { useProfile, useUpdateProfile, useUploadAvatar } from '@/features/profile/use-profile';
 import { useTheme } from '@/hooks/use-theme';
 import { FontSize, FontWeight, Radius, Spacing } from '@/theme';
+
+function ProfileSkeleton() {
+  const theme = useTheme();
+  const [opacity] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.35, duration: 700, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [opacity]);
+
+  const bar = (w: number | `${number}%`, h: number = 14) => (
+    <Animated.View
+      style={{ width: w, height: h, borderRadius: 6, backgroundColor: theme.surfaceAlt, opacity }}
+    />
+  );
+
+  return (
+    <View style={styles.skeletonContent}>
+      <Animated.View
+        style={{
+          width: 100,
+          height: 100,
+          borderRadius: 50,
+          backgroundColor: theme.surfaceAlt,
+          alignSelf: 'center',
+          opacity,
+        }}
+      />
+      <View style={styles.skeletonField}>
+        {bar('30%', 10)}
+        {bar('100%', 48)}
+      </View>
+      <View style={styles.skeletonField}>
+        {bar('25%', 10)}
+        {bar('100%', 48)}
+      </View>
+    </View>
+  );
+}
 
 function AvatarUpload({
   avatarUrl,
@@ -130,10 +177,23 @@ export default function ProfileScreen() {
     uploadAvatar(undefined, {
       onSuccess: () => showSnackbar('Foto atualizada!', 'success'),
       onError: (err) => {
-        if (err.message !== 'cancelled') showSnackbar('Erro ao atualizar foto', 'error');
+        const msg = err instanceof Error ? err.message : '';
+        if (!msg || msg === 'cancelled') return;
+        if (msg === 'Permissão de galeria negada.') {
+          showSnackbar('Acesse Configurações para permitir fotos', 'error');
+        } else {
+          showSnackbar('Erro ao atualizar foto', 'error');
+        }
       },
     });
   }, [uploadAvatar, showSnackbar]);
+
+  function handleSignOut() {
+    Alert.alert('Sair', 'Tem certeza que deseja sair?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Sair', style: 'destructive', onPress: signOut },
+    ]);
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -150,7 +210,7 @@ export default function ProfileScreen() {
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           {isLoading ? (
-            <ActivityIndicator style={styles.loader} />
+            <ProfileSkeleton />
           ) : (
             <>
               <AvatarUpload
@@ -197,7 +257,7 @@ export default function ProfileScreen() {
 
         <View style={[styles.footer, { borderTopColor: theme.border }]}>
           <Pressable
-            onPress={signOut}
+            onPress={handleSignOut}
             style={({ pressed }) => [styles.signOutButton, { opacity: pressed ? 0.6 : 1 }]}
           >
             <ThemedText style={[styles.signOutLabel, { color: theme.danger }]}>Sair</ThemedText>
@@ -229,8 +289,12 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     gap: Spacing.lg,
   },
-  loader: {
-    paddingVertical: Spacing.xxl,
+  skeletonContent: {
+    gap: Spacing.lg,
+    paddingTop: Spacing.md,
+  },
+  skeletonField: {
+    gap: Spacing.xs,
   },
   avatarWrapper: {
     alignSelf: 'center',

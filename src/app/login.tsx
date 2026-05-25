@@ -8,6 +8,24 @@ import { useAuth } from '@/features/auth/auth-context';
 import { useTheme } from '@/hooks/use-theme';
 import { FontSize, FontWeight, Layout, Radius, Spacing } from '@/theme';
 
+function BrandMark({ color, bg }: { color: string; bg: string }) {
+  return (
+    <View style={[styles.mark, { backgroundColor: bg }]}>
+      <View style={[styles.markRing, { borderColor: color }]}>
+        <View style={[styles.markDot, { backgroundColor: color }]} />
+      </View>
+    </View>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <View style={styles.googleBadge}>
+      <ThemedText style={styles.googleLetter}>G</ThemedText>
+    </View>
+  );
+}
+
 export default function LoginScreen() {
   const theme = useTheme();
   const { signInWithGoogle } = useAuth();
@@ -20,7 +38,14 @@ export default function LoginScreen() {
     try {
       await signInWithGoogle();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Falha ao entrar. Tente novamente.');
+      const msg = (e instanceof Error ? e.message : '').toLowerCase();
+      if (msg.includes('cancel') || msg.includes('dismiss') || msg.includes('abort')) {
+        // user dismissed the OAuth flow — silent
+      } else if (msg.includes('network') || msg.includes('fetch') || msg.includes('timeout')) {
+        setError('Sem conexão. Verifique sua internet e tente novamente.');
+      } else {
+        setError('Não foi possível entrar. Tente novamente.');
+      }
     } finally {
       setIsSigningIn(false);
     }
@@ -30,12 +55,10 @@ export default function LoginScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.hero}>
-          <View style={[styles.mark, { backgroundColor: theme.primary }]}>
-            <ThemedText style={[styles.markLetter, { color: theme.textOnPrimary }]}>C</ThemedText>
-          </View>
+          <BrandMark color={theme.textOnPrimary} bg={theme.primary} />
           <ThemedText style={styles.title}>Cofinder</ThemedText>
-          <ThemedText style={[styles.tagline, { color: theme.textSecondary }]}>
-            Descubra cafeterias bem avaliadas perto de você
+          <ThemedText style={[styles.tagline, { color: theme.textMuted }]}>
+            {'Descubra cafeterias\nbem avaliadas perto de você'}
           </ThemedText>
         </View>
 
@@ -49,15 +72,22 @@ export default function LoginScreen() {
             onPress={handleSignIn}
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: theme.primary, opacity: pressed || isSigningIn ? 0.85 : 1 },
+              {
+                backgroundColor: theme.surface,
+                borderColor: theme.border,
+                opacity: pressed || isSigningIn ? 0.75 : 1,
+              },
             ]}
           >
             {isSigningIn ? (
-              <ActivityIndicator color={theme.textOnPrimary} />
+              <ActivityIndicator color={theme.primary} />
             ) : (
-              <ThemedText style={[styles.buttonText, { color: theme.textOnPrimary }]}>
-                Continuar com Google
-              </ThemedText>
+              <View style={styles.buttonContent}>
+                <GoogleIcon />
+                <ThemedText style={[styles.buttonText, { color: theme.text }]}>
+                  Continuar com Google
+                </ThemedText>
+              </View>
             )}
           </Pressable>
         </View>
@@ -83,6 +113,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.lg,
+    paddingBottom: Spacing.xxl * 2,
   },
   mark: {
     width: 88,
@@ -91,18 +122,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  markLetter: {
-    fontSize: 32,
-    lineHeight: 38,
-    fontWeight: FontWeight.bold,
+  markRing: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
   title: {
     fontSize: FontSize.xxl,
     lineHeight: Math.round(FontSize.xxl * 1.2),
     fontWeight: FontWeight.bold,
+    letterSpacing: -0.8,
   },
   tagline: {
-    fontSize: FontSize.md,
+    fontSize: FontSize.sm,
+    lineHeight: 22,
+    letterSpacing: 0.1,
     textAlign: 'center',
   },
   footer: {
@@ -115,8 +157,29 @@ const styles = StyleSheet.create({
   button: {
     height: 52,
     borderRadius: Radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  googleBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#4285F4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleLetter: {
+    fontSize: 12,
+    lineHeight: 15,
+    fontWeight: FontWeight.bold,
+    color: '#FFFFFF',
   },
   buttonText: {
     fontSize: FontSize.md,

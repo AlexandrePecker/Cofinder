@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'reac
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useSnackbar } from '@/components/snackbar-provider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useFavorites, useToggleFavorite } from '@/features/cafes/use-favorites';
@@ -20,6 +21,7 @@ const PRICE_LABEL: Record<number, string> = {
 export default function CafeDetailScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { showSnackbar } = useSnackbar();
   const { data: favoriteIds } = useFavorites();
   const { mutate: toggleFavorite, isPending: isTogglingFavorite } = useToggleFavorite();
 
@@ -61,7 +63,19 @@ export default function CafeDetailScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-              onPress={() => toggleFavorite({ placeId: params.id, isFavorited })}
+              onPress={() =>
+                toggleFavorite(
+                  { placeId: params.id, isFavorited },
+                  {
+                    onSuccess: () =>
+                      showSnackbar(
+                        isFavorited ? 'Removido dos favoritos' : 'Adicionado aos favoritos',
+                        'success',
+                      ),
+                    onError: () => showSnackbar('Erro ao atualizar favorito', 'error'),
+                  },
+                )
+              }
               style={({ pressed }) => [styles.favoriteButton, { opacity: pressed ? 0.6 : 1 }]}
             >
               <ThemedText style={[styles.favoriteIcon, { color: theme.rating }]}>

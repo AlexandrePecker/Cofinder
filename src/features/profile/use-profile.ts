@@ -81,13 +81,17 @@ export function useUploadAvatar() {
         data: { publicUrl },
       } = supabase.storage.from('avatars').getPublicUrl(path);
 
+      // Append cache-buster so expo-image treats each upload as a new URI
+      // and doesn't serve the stale cached photo from the previous upload.
+      const versionedUrl = `${publicUrl}?t=${Date.now()}`;
+
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ avatar_url: versionedUrl })
         .eq('id', user.id);
       if (profileError) throw profileError;
 
-      return publicUrl;
+      return versionedUrl;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });

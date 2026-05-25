@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   TextInput,
   View,
@@ -70,113 +71,121 @@ export default function RegisterScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-          <View style={styles.header}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Voltar"
-              onPress={() => router.back()}
-              style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
-            >
-              <ThemedText style={[styles.backLabel, { color: theme.primary }]}>← Voltar</ThemedText>
-            </Pressable>
-          </View>
-
-          <View style={styles.titleBlock}>
-            <ThemedText style={styles.title}>Criar conta</ThemedText>
-            <ThemedText style={[styles.subtitle, { color: theme.textMuted }]}>
-              Comece a avaliar e descobrir cafeterias
-            </ThemedText>
-          </View>
-
-          <View style={styles.form}>
-            {error ? (
-              <ThemedText style={[styles.error, { color: theme.danger }]}>{error}</ThemedText>
-            ) : null}
-
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: inputBg, borderColor: inputBorderColor, color: theme.text },
-              ]}
-              placeholder="Email"
-              placeholderTextColor={theme.textMuted}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-              textContentType="emailAddress"
-              value={email}
-              onChangeText={setEmail}
-              editable={!isLoading}
-            />
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: inputBg, borderColor: inputBorderColor, color: theme.text },
-              ]}
-              placeholder="Senha (mínimo 6 caracteres)"
-              placeholderTextColor={theme.textMuted}
-              secureTextEntry
-              autoComplete="new-password"
-              textContentType="newPassword"
-              value={password}
-              onChangeText={setPassword}
-              editable={!isLoading}
-            />
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: inputBg, borderColor: inputBorderColor, color: theme.text },
-              ]}
-              placeholder="Confirmar senha"
-              placeholderTextColor={theme.textMuted}
-              secureTextEntry
-              autoComplete="new-password"
-              textContentType="newPassword"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              editable={!isLoading}
-            />
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Criar conta"
-              disabled={isLoading}
-              onPress={handleRegister}
-              style={({ pressed }) => [
-                styles.primaryButton,
-                Shadow.card,
-                { backgroundColor: theme.primary, opacity: pressed || isLoading ? 0.75 : 1 },
-              ]}
-            >
-              {isLoading ? (
-                <ActivityIndicator color={theme.textOnPrimary} />
-              ) : (
-                <ThemedText style={[styles.primaryButtonText, { color: theme.textOnPrimary }]}>
-                  Criar conta
+      <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.header}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Voltar"
+                onPress={() => router.back()}
+                style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+              >
+                <ThemedText style={[styles.backLabel, { color: theme.primary }]}>
+                  ← Voltar
                 </ThemedText>
-              )}
-            </Pressable>
+              </Pressable>
+            </View>
 
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => router.back()}
-              style={({ pressed }) => [styles.loginLink, { opacity: pressed ? 0.6 : 1 }]}
-            >
-              <ThemedText style={[styles.loginText, { color: theme.textSecondary }]}>
-                Já tem conta?{' '}
-                <ThemedText style={[styles.loginHighlight, { color: theme.primary }]}>
-                  Entrar
-                </ThemedText>
+            <View style={styles.titleBlock}>
+              <ThemedText style={styles.title}>Criar conta</ThemedText>
+              <ThemedText style={[styles.subtitle, { color: theme.textMuted }]}>
+                Comece a avaliar e descobrir cafeterias
               </ThemedText>
-            </Pressable>
-          </View>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+            </View>
+
+            <View style={styles.form}>
+              {error ? (
+                <ThemedText style={[styles.error, { color: theme.danger }]}>{error}</ThemedText>
+              ) : null}
+
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: inputBg, borderColor: inputBorderColor, color: theme.text },
+                ]}
+                placeholder="Email"
+                placeholderTextColor={theme.textMuted}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+                textContentType="emailAddress"
+                value={email}
+                onChangeText={setEmail}
+                editable={!isLoading}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: inputBg, borderColor: inputBorderColor, color: theme.text },
+                ]}
+                placeholder="Senha (mínimo 6 caracteres)"
+                placeholderTextColor={theme.textMuted}
+                secureTextEntry
+                autoComplete="new-password"
+                textContentType="newPassword"
+                value={password}
+                onChangeText={setPassword}
+                editable={!isLoading}
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: inputBg, borderColor: inputBorderColor, color: theme.text },
+                ]}
+                placeholder="Confirmar senha"
+                placeholderTextColor={theme.textMuted}
+                secureTextEntry
+                autoComplete="new-password"
+                textContentType="newPassword"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                editable={!isLoading}
+              />
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Criar conta"
+                disabled={isLoading}
+                onPress={handleRegister}
+                style={({ pressed }) => [
+                  styles.primaryButton,
+                  Shadow.card,
+                  { backgroundColor: theme.primary, opacity: pressed || isLoading ? 0.75 : 1 },
+                ]}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color={theme.textOnPrimary} />
+                ) : (
+                  <ThemedText style={[styles.primaryButtonText, { color: theme.textOnPrimary }]}>
+                    Criar conta
+                  </ThemedText>
+                )}
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.back()}
+                style={({ pressed }) => [styles.loginLink, { opacity: pressed ? 0.6 : 1 }]}
+              >
+                <ThemedText style={[styles.loginText, { color: theme.textSecondary }]}>
+                  Já tem conta?{' '}
+                  <ThemedText style={[styles.loginHighlight, { color: theme.primary }]}>
+                    Entrar
+                  </ThemedText>
+                </ThemedText>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </ThemedView>
   );
 }
@@ -190,12 +199,15 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Layout.screenPadding,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.xxl,
     maxWidth: Layout.maxContentWidth,
     width: '100%',
     alignSelf: 'center',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: Layout.screenPadding,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xxl,
   },
   header: {
     paddingBottom: Spacing.xl,

@@ -6,7 +6,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/features/auth/auth-context';
 import { useTheme } from '@/hooks/use-theme';
-import { FontSize, FontWeight, Layout, Radius, Spacing } from '@/theme';
+import { FontSize, FontWeight, Layout, Radius, Shadow, Spacing } from '@/theme';
 
 function BrandMark({ color, bg }: { color: string; bg: string }) {
   return (
@@ -56,10 +56,12 @@ export default function LoginScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.hero}>
           <BrandMark color={theme.textOnPrimary} bg={theme.primary} />
-          <ThemedText style={styles.title}>Cofinder</ThemedText>
-          <ThemedText style={[styles.tagline, { color: theme.textMuted }]}>
-            {'Descubra cafeterias\nbem avaliadas perto de você'}
-          </ThemedText>
+          <View style={styles.heroText}>
+            <ThemedText style={styles.title}>Cofinder</ThemedText>
+            <ThemedText style={[styles.tagline, { color: theme.textMuted }]}>
+              {'Descubra cafeterias\nbem avaliadas perto de você'}
+            </ThemedText>
+          </View>
         </View>
 
         <View style={styles.footer}>
@@ -68,10 +70,12 @@ export default function LoginScreen() {
           ) : null}
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel="Entrar com Google"
             disabled={isSigningIn}
             onPress={handleSignIn}
             style={({ pressed }) => [
               styles.button,
+              Shadow.card,
               {
                 backgroundColor: theme.surface,
                 borderColor: theme.border,
@@ -112,8 +116,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.lg,
+    gap: Spacing.xl,
     paddingBottom: Spacing.xxl * 2,
+  },
+  heroText: {
+    alignItems: 'center',
+    gap: Spacing.xs,
   },
   mark: {
     width: 88,
@@ -131,9 +139,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   markDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
   },
   title: {
     fontSize: FontSize.xxl,

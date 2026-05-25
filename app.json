@@ -8,7 +8,8 @@
     "scheme": "cofinder",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.anonymous.cofinder"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,6 +26,12 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "$(PRODUCT_NAME) uses your location to find cafes nearby."
+        }
+      ],
       [
         "expo-splash-screen",
         {

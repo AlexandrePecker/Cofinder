@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -7,6 +8,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/features/auth/auth-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import '@/theme';
+
+const queryClient = new QueryClient();
 
 function RootNavigator() {
   const { session, isLoading } = useAuth();
@@ -39,13 +42,15 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <SafeAreaProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AuthProvider>
-          <RootNavigator />
-        </AuthProvider>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>
+      <SafeAreaProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </QueryClientProvider>
   );
 }

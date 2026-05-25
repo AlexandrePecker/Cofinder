@@ -160,6 +160,9 @@ const styles = StyleSheet.create({
   },
   map: {
     height: 200,
+    borderBottomLeftRadius: Radius.lg,
+    borderBottomRightRadius: Radius.lg,
+    overflow: 'hidden',
   },
   content: {
     padding: Spacing.lg,
@@ -170,8 +173,10 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   name: {
-    fontSize: FontSize.xl,
+    fontSize: FontSize.xxl,
     fontWeight: FontWeight.bold,
+    letterSpacing: -0.5,
+    lineHeight: 34,
   },
   ratingRow: {
     flexDirection: 'row',
@@ -179,7 +184,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   rating: {
-    fontSize: FontSize.md,
+    fontSize: FontSize.lg,
     fontWeight: FontWeight.semibold,
   },
   ratingCount: {

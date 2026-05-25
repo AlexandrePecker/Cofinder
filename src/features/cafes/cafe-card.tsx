@@ -21,7 +21,11 @@ export function CafeCard({ cafe, onPress }: Props) {
       style={({ pressed }) => [
         styles.card,
         Shadow.card,
-        { backgroundColor: theme.surface, opacity: pressed ? 0.9 : 1 },
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+          opacity: pressed ? 0.9 : 1,
+        },
       ]}
     >
       <ThemedText style={styles.name} numberOfLines={1}>
@@ -51,6 +55,7 @@ export function CafeCard({ cafe, onPress }: Props) {
 const styles = StyleSheet.create({
   card: {
     borderRadius: Radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
     padding: Spacing.md,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.sm,

@@ -1,10 +1,15 @@
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Avatar } from '@/components/avatar';
+import { CafeSkeletonList } from '@/components/cafe-skeleton';
+import { ProfileSheet } from '@/components/profile-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useAuth } from '@/features/auth/auth-context';
 import { CafeCard } from '@/features/cafes/cafe-card';
 import type { Cafe } from '@/features/cafes/types';
 import { useLocation } from '@/features/cafes/use-location';
@@ -31,12 +36,25 @@ function navigateToCafe(router: ReturnType<typeof useRouter>, cafe: Cafe) {
 export default function HomeScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { session } = useAuth();
   const location = useLocation();
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const lat = location.status === 'ready' ? location.lat : null;
   const lng = location.status === 'ready' ? location.lng : null;
 
   const { data: cafes, isLoading, error } = useNearbyCafes(lat, lng);
+
+  const user = session?.user;
+  const avatarUri =
+    (user?.user_metadata?.avatar_url as string | undefined) ??
+    (user?.user_metadata?.picture as string | undefined) ??
+    null;
+  const displayName =
+    (user?.user_metadata?.full_name as string | undefined) ??
+    (user?.user_metadata?.name as string | undefined) ??
+    user?.email ??
+    null;
 
   if (location.status === 'loading') {
     return (
@@ -58,6 +76,14 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <SafeAreaView
+        edges={['top']}
+        style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.surface }]}
+      >
+        <ThemedText style={styles.appName}>Cofinder</ThemedText>
+        <Avatar uri={avatarUri} name={displayName} size={34} onPress={() => setProfileOpen(true)} />
+      </SafeAreaView>
+
       <MapView
         style={styles.map}
         showsUserLocation
@@ -83,9 +109,7 @@ export default function HomeScreen() {
         </View>
 
         {isLoading ? (
-          <View style={styles.listFeedback}>
-            <ActivityIndicator />
-          </View>
+          <CafeSkeletonList />
         ) : error ? (
           <View style={styles.listFeedback}>
             <ThemedText style={[styles.message, { color: theme.textMuted }]}>
@@ -110,6 +134,8 @@ export default function HomeScreen() {
           />
         )}
       </SafeAreaView>
+
+      <ProfileSheet visible={profileOpen} onClose={() => setProfileOpen(false)} />
     </ThemedView>
   );
 }
@@ -123,6 +149,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.xl,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  appName: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+    letterSpacing: -0.3,
   },
   map: {
     flex: 0.45,
@@ -148,6 +187,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.xxl,
   },
   message: {
     fontSize: FontSize.sm,

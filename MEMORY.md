@@ -25,14 +25,15 @@ Done:
 
 ## Next steps
 
-### Feature phase (tasks 11–13)
+### Activate real cafe data
+- `supabase secrets set GOOGLE_PLACES_API_KEY=...` when budget allows
+- Until then: map + location work, but cafe list shows error (Edge Function returns 500)
 
-- Add TanStack Query provider in the root layout.
-- 11 nearby cafes (map + list + geolocation), 12 cafe detail, 13 favorites.
-- When ready for Places data: `supabase secrets set GOOGLE_PLACES_API_KEY=...`
-
-### Pending
-- `expo-crypto` not installed — WebCrypto warning on every PKCE flow (PKCE still works with "plain" method, but less secure). Fix: install `expo-crypto` + configure as crypto adapter in Supabase client.
+### Polish / post-MVP
+- Favorites list screen (currently favorites are toggled but not listed anywhere)
+- Cafe photo display (photo_ref from Places API → photo URL)
+- Regenerate Google OAuth client secret (current one was shared in chat history)
+- `npm audit fix` — 11 moderate vulnerabilities (no critical/high)
 
 ## Gotchas / decisions worth remembering
 

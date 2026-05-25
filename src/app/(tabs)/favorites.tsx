@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,6 +35,13 @@ export default function FavoritesScreen() {
   const { data: cafes, isLoading, isFetching, error, refetch } = useFavoriteCafes();
   const { isPending: isToggling } = useToggleFavorite();
 
+  const renderCafe = useCallback(
+    ({ item }: { item: Cafe }) => (
+      <CafeCard cafe={item} onPress={() => navigateToCafe(router, item)} />
+    ),
+    [router],
+  );
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView
@@ -55,9 +63,7 @@ export default function FavoritesScreen() {
         <FlatList
           data={cafes ?? []}
           keyExtractor={(item) => item.place_id}
-          renderItem={({ item }) => (
-            <CafeCard cafe={item} onPress={() => navigateToCafe(router, item)} />
-          )}
+          renderItem={renderCafe}
           onRefresh={refetch}
           refreshing={isFetching && !isLoading}
           contentContainerStyle={styles.listContent}

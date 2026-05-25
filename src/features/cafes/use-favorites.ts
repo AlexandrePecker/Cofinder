@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
+import { FAVORITE_CAFES_QUERY_KEY } from './use-favorite-cafes';
 
 const QUERY_KEY = ['favorites'];
 
@@ -47,7 +48,7 @@ export function useToggleFavorite() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ['favorite-cafes'] });
+      queryClient.invalidateQueries({ queryKey: FAVORITE_CAFES_QUERY_KEY });
     },
   });
 }

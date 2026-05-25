@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
@@ -38,6 +39,13 @@ export default function NearbyScreen() {
   const lng = location.status === 'ready' ? location.lng : null;
 
   const { data: cafes, isLoading, isFetching, error, refetch } = useNearbyCafes(lat, lng);
+
+  const renderCafe = useCallback(
+    ({ item }: { item: Cafe }) => (
+      <CafeCard cafe={item} onPress={() => navigateToCafe(router, item)} />
+    ),
+    [router],
+  );
 
   if (location.status === 'loading') {
     return (
@@ -111,9 +119,7 @@ export default function NearbyScreen() {
           <FlatList
             data={cafes ?? []}
             keyExtractor={(item) => item.place_id}
-            renderItem={({ item }) => (
-              <CafeCard cafe={item} onPress={() => navigateToCafe(router, item)} />
-            )}
+            renderItem={renderCafe}
             onRefresh={refetch}
             refreshing={isFetching && !isLoading}
             contentContainerStyle={styles.listContent}

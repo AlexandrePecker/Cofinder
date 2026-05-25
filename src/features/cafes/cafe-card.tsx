@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -11,7 +12,7 @@ type Props = {
   onPress: () => void;
 };
 
-export function CafeCard({ cafe, onPress }: Props) {
+export const CafeCard = memo(function CafeCard({ cafe, onPress }: Props) {
   const theme = useTheme();
 
   return (
@@ -50,7 +51,7 @@ export function CafeCard({ cafe, onPress }: Props) {
       ) : null}
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

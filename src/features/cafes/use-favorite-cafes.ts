@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 
 import type { Cafe } from './types';
 
+export const FAVORITE_CAFES_QUERY_KEY = ['favorite-cafes'] as const;
+
 async function fetchFavoriteCafes(): Promise<Cafe[]> {
   const { data, error } = await supabase
     .from('favorites')
@@ -30,7 +32,7 @@ async function fetchFavoriteCafes(): Promise<Cafe[]> {
 
 export function useFavoriteCafes() {
   return useQuery({
-    queryKey: ['favorite-cafes'],
+    queryKey: FAVORITE_CAFES_QUERY_KEY,
     queryFn: fetchFavoriteCafes,
     staleTime: 60 * 1000,
   });

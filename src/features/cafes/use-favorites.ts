@@ -47,6 +47,7 @@ export function useToggleFavorite() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['favorite-cafes'] });
     },
   });
 }

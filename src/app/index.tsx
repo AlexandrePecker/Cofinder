@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -81,7 +81,22 @@ export default function HomeScreen() {
         style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.surface }]}
       >
         <ThemedText style={styles.appName}>Cofinder</ThemedText>
-        <Avatar uri={avatarUri} name={displayName} size={34} onPress={() => setProfileOpen(true)} />
+        <View style={styles.headerActions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Favoritos"
+            onPress={() => router.push('/favorites')}
+            style={({ pressed }) => [styles.favButton, { opacity: pressed ? 0.6 : 1 }]}
+          >
+            <ThemedText style={[styles.favIcon, { color: theme.rating }]}>♥</ThemedText>
+          </Pressable>
+          <Avatar
+            uri={avatarUri}
+            name={displayName}
+            size={34}
+            onPress={() => setProfileOpen(true)}
+          />
+        </View>
       </SafeAreaView>
 
       <MapView
@@ -162,6 +177,17 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: FontWeight.bold,
     letterSpacing: -0.3,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  favButton: {
+    padding: Spacing.xs,
+  },
+  favIcon: {
+    fontSize: FontSize.xl,
   },
   map: {
     flex: 0.45,

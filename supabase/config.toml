@@ -367,6 +367,10 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+[functions.nearby-cafes]
+# Require a valid user JWT — only signed-in users may trigger paid Places lookups.
+verify_jwt = true
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.

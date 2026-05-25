@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook: run the RLS audit whenever a migration is staged.
+# Source of truth lives in scripts/git-hooks/; install with scripts/install-hooks.sh.
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+
+if git diff --cached --name-only | grep -q '^supabase/migrations/'; then
+  echo "Staged Supabase migration detected — running RLS audit..."
+  bash "$ROOT/scripts/audit-rls.sh"
+fi

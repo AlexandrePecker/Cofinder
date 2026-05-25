@@ -1,0 +1,3 @@
+-- Seed data for local development (loaded by `supabase db reset`).
+-- Keep this idempotent. Real cafe data comes from the Places proxy at runtime,
+-- so seeds here are only for local fixtures (e.g. a test user's favorites).

@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { SnackbarProvider } from '@/components/snackbar-provider';
 import { AuthProvider, useAuth } from '@/features/auth/auth-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import '@/theme';
@@ -46,7 +47,9 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <AuthProvider>
-            <RootNavigator />
+            <SnackbarProvider>
+              <RootNavigator />
+            </SnackbarProvider>
           </AuthProvider>
           <StatusBar style="auto" />
         </ThemeProvider>

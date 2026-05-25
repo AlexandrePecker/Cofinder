@@ -37,7 +37,7 @@ export default function NearbyScreen() {
   const lat = location.status === 'ready' ? location.lat : null;
   const lng = location.status === 'ready' ? location.lng : null;
 
-  const { data: cafes, isLoading, error } = useNearbyCafes(lat, lng);
+  const { data: cafes, isLoading, isFetching, error, refetch } = useNearbyCafes(lat, lng);
 
   if (location.status === 'loading') {
     return (
@@ -106,6 +106,8 @@ export default function NearbyScreen() {
             renderItem={({ item }) => (
               <CafeCard cafe={item} onPress={() => navigateToCafe(router, item)} />
             )}
+            onRefresh={refetch}
+            refreshing={isFetching && !isLoading}
             contentContainerStyle={styles.listContent}
             ListEmptyComponent={
               <View style={styles.listFeedback}>

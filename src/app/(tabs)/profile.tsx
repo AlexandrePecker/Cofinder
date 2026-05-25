@@ -1,5 +1,4 @@
-import { Image } from 'expo-image';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -12,6 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Avatar } from '@/components/avatar';
+import { useSnackbar } from '@/components/snackbar-provider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/features/auth/auth-context';
@@ -19,12 +20,14 @@ import { useProfile, useUpdateProfile, useUploadAvatar } from '@/features/profil
 import { useTheme } from '@/hooks/use-theme';
 import { FontSize, FontWeight, Radius, Spacing } from '@/theme';
 
-function AvatarSection({
+function AvatarUpload({
   avatarUrl,
+  displayName,
   onPress,
   isUploading,
 }: {
   avatarUrl: string | null;
+  displayName: string | null;
   onPress: () => void;
   isUploading: boolean;
 }) {
@@ -36,20 +39,7 @@ function AvatarSection({
       disabled={isUploading}
       style={({ pressed }) => [styles.avatarWrapper, { opacity: pressed ? 0.7 : 1 }]}
     >
-      {avatarUrl ? (
-        <Image
-          source={{ uri: avatarUrl }}
-          style={[styles.avatar, { borderColor: theme.border }]}
-          contentFit="cover"
-        />
-      ) : (
-        <View
-          style={[
-            styles.avatar,
-            { backgroundColor: theme.primaryMuted, borderColor: theme.border },
-          ]}
-        />
-      )}
+      <Avatar uri={avatarUrl} name={displayName} size={100} />
       <View style={[styles.avatarBadge, { backgroundColor: theme.primary }]}>
         {isUploading ? (
           <ActivityIndicator size="small" color={theme.textOnPrimary} />
@@ -128,8 +118,22 @@ export default function ProfileScreen() {
   const { data: profile, isLoading } = useProfile();
   const { mutate: updateProfile, isPending: isSaving } = useUpdateProfile();
   const { mutate: uploadAvatar, isPending: isUploading } = useUploadAvatar();
+  const { showSnackbar } = useSnackbar();
 
   const email = session?.user?.email ?? null;
+  const displayName =
+    profile?.display_name ??
+    (session?.user?.user_metadata?.full_name as string | undefined) ??
+    null;
+
+  const handleUpload = useCallback(() => {
+    uploadAvatar(undefined, {
+      onSuccess: () => showSnackbar('Foto atualizada!', 'success'),
+      onError: (err) => {
+        if (err.message !== 'cancelled') showSnackbar('Erro ao atualizar foto', 'error');
+      },
+    });
+  }, [uploadAvatar, showSnackbar]);
 
   return (
     <ThemedView style={styles.container}>
@@ -149,9 +153,10 @@ export default function ProfileScreen() {
             <ActivityIndicator style={styles.loader} />
           ) : (
             <>
-              <AvatarSection
+              <AvatarUpload
                 avatarUrl={profile?.avatar_url ?? null}
-                onPress={() => uploadAvatar()}
+                displayName={displayName}
+                onPress={handleUpload}
                 isUploading={isUploading}
               />
 
@@ -176,7 +181,15 @@ export default function ProfileScreen() {
                 key={profile?.display_name ?? ''}
                 initialName={profile?.display_name ?? ''}
                 isSaving={isSaving}
-                onSave={(name) => updateProfile({ display_name: name })}
+                onSave={(name) =>
+                  updateProfile(
+                    { display_name: name },
+                    {
+                      onSuccess: () => showSnackbar('Perfil salvo!', 'success'),
+                      onError: () => showSnackbar('Erro ao salvar perfil', 'error'),
+                    },
+                  )
+                }
               />
             </>
           )}

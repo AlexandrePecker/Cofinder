@@ -31,7 +31,7 @@ function navigateToCafe(router: ReturnType<typeof useRouter>, cafe: Cafe) {
 export default function FavoritesScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { data: cafes, isLoading, error } = useFavoriteCafes();
+  const { data: cafes, isLoading, isFetching, error, refetch } = useFavoriteCafes();
   const { isPending: isToggling } = useToggleFavorite();
 
   return (
@@ -58,6 +58,8 @@ export default function FavoritesScreen() {
           renderItem={({ item }) => (
             <CafeCard cafe={item} onPress={() => navigateToCafe(router, item)} />
           )}
+          onRefresh={refetch}
+          refreshing={isFetching && !isLoading}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.feedback}>

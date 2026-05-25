@@ -20,10 +20,10 @@ function RootNavigator() {
   useEffect(() => {
     if (isLoading) return;
 
-    const onLoginScreen = segments[0] === 'login';
-    if (!session && !onLoginScreen) {
+    const onAuthScreen = segments[0] === 'login' || segments[0] === 'register';
+    if (!session && !onAuthScreen) {
       router.replace('/login');
-    } else if (session && onLoginScreen) {
+    } else if (session && onAuthScreen) {
       router.replace('/(tabs)');
     }
   }, [session, isLoading, segments, router]);

@@ -6,7 +6,7 @@ import type { Cafe } from './types';
 
 async function fetchNearbyCafes(lat: number, lng: number): Promise<Cafe[]> {
   const { data, error } = await supabase.functions.invoke('nearby-cafes', {
-    body: { lat, lng },
+    body: { lat, lng, radius: 20000 },
   });
   if (error) throw error;
   return (data as { cafes: Cafe[] }).cafes ?? [];

@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, View } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CafeSkeletonList } from '@/components/cafe-skeleton';
@@ -26,6 +25,7 @@ function navigateToCafe(router: ReturnType<typeof useRouter>, cafe: Cafe) {
       price_level: cafe.price_level?.toString() ?? '',
       lat: cafe.lat.toString(),
       lng: cafe.lng.toString(),
+      photo_ref: cafe.photo_ref ?? '',
     },
   });
 }
@@ -51,6 +51,9 @@ export default function NearbyScreen() {
     return (
       <ThemedView style={styles.centered}>
         <ActivityIndicator />
+        <ThemedText style={[styles.message, { color: theme.textMuted }]}>
+          Buscando sua localização...
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -80,59 +83,44 @@ export default function NearbyScreen() {
         style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.surface }]}
       >
         <ThemedText style={styles.appName}>Cofinder</ThemedText>
+        <ThemedText style={[styles.subtitle, { color: theme.textMuted }]}>
+          Cafeterias num raio de 20 km
+        </ThemedText>
       </SafeAreaView>
 
-      <MapView
-        style={styles.map}
-        showsUserLocation
-        initialRegion={{
-          latitude: lat!,
-          longitude: lng!,
-          latitudeDelta: 0.02,
-          longitudeDelta: 0.02,
-        }}
-      >
-        {cafes?.map((cafe: Cafe) => (
-          <Marker
-            key={cafe.place_id}
-            coordinate={{ latitude: cafe.lat, longitude: cafe.lng }}
-            title={cafe.name}
-            onPress={() => navigateToCafe(router, cafe)}
-          />
-        ))}
-      </MapView>
-
-      <SafeAreaView edges={['bottom']} style={styles.list}>
-        <View style={[styles.listHeader, { borderBottomColor: theme.border }]}>
-          <ThemedText style={styles.listTitle}>Cafeterias próximas</ThemedText>
-        </View>
-
-        {isLoading ? (
-          <CafeSkeletonList />
-        ) : error ? (
-          <View style={styles.listFeedback}>
-            <ThemedText style={[styles.message, { color: theme.textMuted }]}>
-              Não foi possível carregar as cafeterias.
+      {isLoading ? (
+        <CafeSkeletonList />
+      ) : error ? (
+        <View style={styles.centered}>
+          <ThemedText style={[styles.message, { color: theme.textMuted }]}>
+            Não foi possível carregar as cafeterias.
+          </ThemedText>
+          <Pressable
+            onPress={() => refetch()}
+            style={({ pressed }) => [styles.settingsButton, { opacity: pressed ? 0.6 : 1 }]}
+          >
+            <ThemedText style={[styles.settingsLabel, { color: theme.primary }]}>
+              Tentar novamente
             </ThemedText>
-          </View>
-        ) : (
-          <FlatList
-            data={cafes ?? []}
-            keyExtractor={(item) => item.place_id}
-            renderItem={renderCafe}
-            onRefresh={refetch}
-            refreshing={isFetching && !isLoading}
-            contentContainerStyle={styles.listContent}
-            ListEmptyComponent={
-              <View style={styles.listFeedback}>
-                <ThemedText style={[styles.message, { color: theme.textMuted }]}>
-                  Nenhuma cafeteria encontrada perto de você.
-                </ThemedText>
-              </View>
-            }
-          />
-        )}
-      </SafeAreaView>
+          </Pressable>
+        </View>
+      ) : (
+        <FlatList
+          data={cafes ?? []}
+          keyExtractor={(item) => item.place_id}
+          renderItem={renderCafe}
+          onRefresh={refetch}
+          refreshing={isFetching && !isLoading}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <View style={styles.centered}>
+              <ThemedText style={[styles.message, { color: theme.textMuted }]}>
+                Nenhuma cafeteria encontrada perto de você.
+              </ThemedText>
+            </View>
+          }
+        />
+      )}
     </ThemedView>
   );
 }
@@ -158,39 +146,22 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 2,
   },
   appName: {
     fontSize: FontSize.lg,
     fontWeight: FontWeight.bold,
     letterSpacing: -0.3,
   },
-  map: {
-    flex: 0.45,
-  },
-  list: {
-    flex: 0.55,
-  },
-  listHeader: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  listTitle: {
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
+  subtitle: {
+    fontSize: FontSize.xs,
   },
   listContent: {
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.lg,
-  },
-  listFeedback: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xxl,
   },
   message: {
     fontSize: FontSize.sm,

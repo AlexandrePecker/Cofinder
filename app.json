@@ -38,6 +38,12 @@
         }
       ],
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "$(PRODUCT_NAME) acessa suas fotos para atualizar seu avatar."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",

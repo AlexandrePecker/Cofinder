@@ -14,6 +14,7 @@ import { CafeCard } from '@/features/cafes/cafe-card';
 import type { Cafe } from '@/features/cafes/types';
 import { useLocation } from '@/features/cafes/use-location';
 import { useNearbyCafes } from '@/features/cafes/use-nearby-cafes';
+import { useProfile } from '@/features/profile/use-profile';
 import { useTheme } from '@/hooks/use-theme';
 import { FontSize, FontWeight, Spacing } from '@/theme';
 
@@ -38,6 +39,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { session } = useAuth();
   const location = useLocation();
+  const { data: profile } = useProfile();
   const [profileOpen, setProfileOpen] = useState(false);
 
   const lat = location.status === 'ready' ? location.lat : null;
@@ -46,11 +48,13 @@ export default function HomeScreen() {
   const { data: cafes, isLoading, error } = useNearbyCafes(lat, lng);
 
   const user = session?.user;
-  const avatarUri =
+  const oauthAvatarUri =
     (user?.user_metadata?.avatar_url as string | undefined) ??
     (user?.user_metadata?.picture as string | undefined) ??
     null;
+  const avatarUri = profile?.avatar_url ?? oauthAvatarUri;
   const displayName =
+    profile?.display_name ??
     (user?.user_metadata?.full_name as string | undefined) ??
     (user?.user_metadata?.name as string | undefined) ??
     user?.email ??

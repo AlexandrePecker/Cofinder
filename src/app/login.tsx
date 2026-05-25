@@ -92,11 +92,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   markLetter: {
-    fontSize: FontSize.display,
+    fontSize: 32,
+    lineHeight: 38,
     fontWeight: FontWeight.bold,
   },
   title: {
     fontSize: FontSize.xxl,
+    lineHeight: Math.round(FontSize.xxl * 1.2),
     fontWeight: FontWeight.bold,
   },
   tagline: {

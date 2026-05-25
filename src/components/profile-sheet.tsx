@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { useAuth } from '@/features/auth/auth-context';
-import { useProfile, useUpdateProfile } from '@/features/profile/use-profile';
+import { useProfile, useUpdateProfile, useUploadAvatar } from '@/features/profile/use-profile';
 import { useTheme } from '@/hooks/use-theme';
 import { FontSize, FontWeight, Radius, Spacing } from '@/theme';
 
@@ -28,9 +28,18 @@ type FormProps = {
   avatarUrl: string | null;
   onSave: (name: string) => void;
   isSaving: boolean;
+  onPickAvatar: () => void;
+  isUploadingAvatar: boolean;
 };
 
-function ProfileForm({ initialName, avatarUrl, onSave, isSaving }: FormProps) {
+function ProfileForm({
+  initialName,
+  avatarUrl,
+  onSave,
+  isSaving,
+  onPickAvatar,
+  isUploadingAvatar,
+}: FormProps) {
   const theme = useTheme();
   const [displayName, setDisplayName] = useState(initialName);
 
@@ -42,20 +51,35 @@ function ProfileForm({ initialName, avatarUrl, onSave, isSaving }: FormProps) {
 
   return (
     <>
-      {avatarUrl ? (
-        <Image
-          source={{ uri: avatarUrl }}
-          style={[styles.avatar, { borderColor: theme.border }]}
-          contentFit="cover"
-        />
-      ) : (
-        <View
-          style={[
-            styles.avatar,
-            { backgroundColor: theme.primaryMuted, borderColor: theme.border },
-          ]}
-        />
-      )}
+      <Pressable
+        onPress={onPickAvatar}
+        disabled={isUploadingAvatar}
+        style={({ pressed }) => [styles.avatarWrapper, { opacity: pressed ? 0.7 : 1 }]}
+      >
+        {avatarUrl ? (
+          <Image
+            source={{ uri: avatarUrl }}
+            style={[styles.avatar, { borderColor: theme.border }]}
+            contentFit="cover"
+          />
+        ) : (
+          <View
+            style={[
+              styles.avatar,
+              { backgroundColor: theme.primaryMuted, borderColor: theme.border },
+            ]}
+          />
+        )}
+        <View style={[styles.avatarBadge, { backgroundColor: theme.primary }]}>
+          {isUploadingAvatar ? (
+            <ActivityIndicator size="small" color={theme.textOnPrimary} />
+          ) : (
+            <ThemedText style={[styles.avatarBadgeIcon, { color: theme.textOnPrimary }]}>
+              ✎
+            </ThemedText>
+          )}
+        </View>
+      </Pressable>
 
       <ThemedText style={[styles.label, { color: theme.textMuted }]}>Nome</ThemedText>
       <TextInput
@@ -98,6 +122,7 @@ export function ProfileSheet({ visible, onClose }: Props) {
   const { signOut } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const { mutate: updateProfile, isPending: isSaving } = useUpdateProfile();
+  const { mutate: uploadAvatar, isPending: isUploadingAvatar } = useUploadAvatar();
 
   async function handleSignOut() {
     onClose();
@@ -140,7 +165,9 @@ export function ProfileSheet({ visible, onClose }: Props) {
               initialName={profile?.display_name ?? ''}
               avatarUrl={profile?.avatar_url ?? null}
               isSaving={isSaving}
+              isUploadingAvatar={isUploadingAvatar}
               onSave={(name) => updateProfile({ display_name: name }, { onSuccess: onClose })}
+              onPickAvatar={() => uploadAvatar()}
             />
           )}
 
@@ -191,12 +218,29 @@ const styles = StyleSheet.create({
   loader: {
     paddingVertical: Spacing.xxl,
   },
+  avatarWrapper: {
+    alignSelf: 'center',
+    position: 'relative',
+  },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: Radius.full,
-    alignSelf: 'center',
     borderWidth: 2,
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 26,
+    height: 26,
+    borderRadius: Radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarBadgeIcon: {
+    fontSize: 13,
+    lineHeight: 16,
   },
   label: {
     fontSize: FontSize.xs,

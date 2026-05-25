@@ -6,22 +6,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/features/auth/auth-context';
 import { useTheme } from '@/hooks/use-theme';
-import { supabase } from '@/lib/supabase';
 import { FontSize, FontWeight, Layout, Radius, Spacing } from '@/theme';
-
-const TEST_USER = { email: 'teste@cofinder.dev', password: 'cofinder-test-1234' };
-
-// Dev-only: sign in (or self-seed) a local test user so the app can be navigated
-// without Google OAuth credentials. __DEV__ is false in production builds.
-async function signInTestUser() {
-  const { error } = await supabase.auth.signInWithPassword(TEST_USER);
-  if (!error) return;
-  const { error: signUpError } = await supabase.auth.signUp({
-    ...TEST_USER,
-    options: { data: { full_name: 'Usuário Teste' } },
-  });
-  if (signUpError) throw signUpError;
-}
 
 export default function LoginScreen() {
   const theme = useTheme();
@@ -36,18 +21,6 @@ export default function LoginScreen() {
       await signInWithGoogle();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Falha ao entrar. Tente novamente.');
-    } finally {
-      setIsSigningIn(false);
-    }
-  }
-
-  async function handleTestSignIn() {
-    setError(null);
-    setIsSigningIn(true);
-    try {
-      await signInTestUser();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Falha no login de teste.');
     } finally {
       setIsSigningIn(false);
     }
@@ -87,22 +60,6 @@ export default function LoginScreen() {
               </ThemedText>
             )}
           </Pressable>
-
-          {__DEV__ ? (
-            <Pressable
-              accessibilityRole="button"
-              disabled={isSigningIn}
-              onPress={handleTestSignIn}
-              style={({ pressed }) => [
-                styles.devButton,
-                { borderColor: theme.border, opacity: pressed || isSigningIn ? 0.7 : 1 },
-              ]}
-            >
-              <ThemedText style={[styles.devButtonText, { color: theme.textSecondary }]}>
-                Entrar com usuário de teste (dev)
-              </ThemedText>
-            </Pressable>
-          ) : null}
         </View>
       </SafeAreaView>
     </ThemedView>
@@ -162,16 +119,5 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
-  },
-  devButton: {
-    height: 48,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  devButtonText: {
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
   },
 });

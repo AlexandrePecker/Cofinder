@@ -5,12 +5,16 @@ See `CLAUDE.md` (locked decisions) and `ARCHITECTURE.md` (full rationale).
 
 ## Current state (2026-05-24)
 
-Foundation + backend + auth are **written, committed, and live-verified** against a
-local Supabase stack: 3 migrations apply clean, RLS + policies confirmed on all 4
-tables, both auth triggers present, `db lint` clean, and the `nearby-cafes` Edge
-Function runs end-to-end (input validation + cache path + Places fetch; only a real
-`GOOGLE_PLACES_API_KEY` is still needed for live cafe data). Real Google login still
-needs Google Cloud OAuth credentials.
+Init phase complete (tasks 1–10, 14, 15) — all committed, lint/typecheck green.
+Foundation + backend + auth are **live-verified** against a local Supabase stack:
+3 migrations apply clean, RLS + policies confirmed on all 4 tables, both auth
+triggers present, `db lint` clean, and the `nearby-cafes` Edge Function runs
+end-to-end (validation + cache path + Places fetch; only a real
+`GOOGLE_PLACES_API_KEY` is needed for live cafe data).
+
+Local test data and the dev-only test-login button have been removed. A Supabase
+**Cloud** project exists (ref `ndogivynbzrpwcrzsiwb`); `.env` URL points at it, but
+`EXPO_PUBLIC_SUPABASE_ANON_KEY` is still the local key — swap it for the cloud key.
 
 Done:
 
@@ -24,14 +28,28 @@ Done:
 - Auth: Supabase client (AsyncStorage + PKCE), AuthProvider (Google OAuth + signOut),
   login screen, session-gated routing, protected home with profile + sign out.
 
-## Next up
+## Next steps
 
-- Feature phase (tasks 11–13): nearby cafes (map + list + geolocation), cafe detail,
-  favorites. **Needs a dev build** (react-native-maps, expo-location are native) +
-  TanStack Query.
-- Batch live verification: `supabase start` + `db reset` + `functions serve`;
-  real Google OAuth needs Google Cloud creds + Supabase config.
-- Final security pass (`/hm-security` L1).
+### Tomorrow — wire the Cloud project (ref `ndogivynbzrpwcrzsiwb`)
+
+1. **Finish `.env`**: set `EXPO_PUBLIC_SUPABASE_ANON_KEY` to the **cloud** anon/publishable
+   key (Dashboard → Project Settings → API). URL already points at cloud.
+2. **Push schema**: `supabase link --project-ref ndogivynbzrpwcrzsiwb` then
+   `supabase db push` (applies the 3 migrations to cloud).
+3. **Google OAuth**: create an OAuth client in Google Cloud Console; in Supabase
+   Dashboard → Authentication → Providers → Google, paste client id + secret and enable.
+   Add `cofinder://**` to the allowed redirect URLs.
+4. **Places**: enable "Places API (New)" + create an API key in Google Cloud;
+   `supabase secrets set GOOGLE_PLACES_API_KEY=...`; deploy with
+   `supabase functions deploy nearby-cafes`.
+5. **Sanity check**: run the app, real Google login → lands on home.
+
+### Feature phase (tasks 11–13) — needs a dev build
+
+- `npx expo prebuild` + native run, or an EAS dev build (react-native-maps and
+  expo-location are native; Expo Go won't run them).
+- Add a TanStack Query provider in the root layout.
+- 11 nearby cafes (map + list + geolocation), 12 cafe detail, 13 favorites.
 
 ## Gotchas / decisions worth remembering
 

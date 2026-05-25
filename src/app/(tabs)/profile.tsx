@@ -100,6 +100,8 @@ function AvatarUpload({
   );
 }
 
+const MAX_DISPLAY_NAME = 80;
+
 function NameForm({
   initialName,
   onSave,
@@ -118,8 +120,9 @@ function NameForm({
       <ThemedText style={[styles.label, { color: theme.textMuted }]}>Nome</ThemedText>
       <TextInput
         value={value}
-        onChangeText={setValue}
+        onChangeText={(text) => setValue(text.slice(0, MAX_DISPLAY_NAME))}
         placeholder="Seu nome"
+        maxLength={MAX_DISPLAY_NAME}
         placeholderTextColor={theme.textMuted}
         style={[
           styles.input,

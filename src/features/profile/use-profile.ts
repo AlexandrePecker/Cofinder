@@ -67,14 +67,16 @@ export function useUploadAvatar() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const uri = result.assets[0].uri;
-      const response = await fetch(uri);
+      const asset = result.assets[0];
+      const contentType = asset.mimeType ?? 'image/jpeg';
+
+      const response = await fetch(asset.uri);
       const blob = await response.blob();
 
       const path = `${user.id}/avatar.jpg`;
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(path, blob, { contentType: 'image/jpeg', upsert: true });
+        .upload(path, blob, { contentType, upsert: true });
       if (uploadError) throw uploadError;
 
       const {

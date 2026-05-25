@@ -1,10 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useFavorites, useToggleFavorite } from '@/features/cafes/use-favorites';
 import { useTheme } from '@/hooks/use-theme';
 import { FontSize, FontWeight, Radius, Shadow, Spacing } from '@/theme';
 
@@ -19,6 +20,9 @@ const PRICE_LABEL: Record<number, string> = {
 export default function CafeDetailScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { data: favoriteIds } = useFavorites();
+  const { mutate: toggleFavorite, isPending: isTogglingFavorite } = useToggleFavorite();
+
   const params = useLocalSearchParams<{
     id: string;
     name: string;
@@ -30,6 +34,8 @@ export default function CafeDetailScreen() {
     lng: string;
   }>();
 
+  const isFavorited = favoriteIds?.has(params.id) ?? false;
+
   const lat = parseFloat(params.lat);
   const lng = parseFloat(params.lng);
   const rating = params.rating ? parseFloat(params.rating) : null;
@@ -39,14 +45,32 @@ export default function CafeDetailScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.header}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.6 : 1 }]}
-        >
-          <ThemedText style={[styles.backLabel, { color: theme.primary }]}>← Voltar</ThemedText>
-        </Pressable>
+        <View style={styles.headerRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+            onPress={() => router.back()}
+            style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.6 : 1 }]}
+          >
+            <ThemedText style={[styles.backLabel, { color: theme.primary }]}>← Voltar</ThemedText>
+          </Pressable>
+
+          {isTogglingFavorite ? (
+            <ActivityIndicator size="small" />
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+              onPress={() => toggleFavorite({ placeId: params.id, isFavorited })}
+              style={({ pressed }) => [styles.favoriteButton, { opacity: pressed ? 0.6 : 1 }]}
+            >
+              <ThemedText style={[styles.favoriteIcon, { color: theme.rating }]}>
+                {isFavorited ? '♥' : '♡'}
+              </ThemedText>
+            </Pressable>
+          )}
+        </View>
+
         <ThemedText style={styles.headerTitle} numberOfLines={1}>
           {params.name}
         </ThemedText>
@@ -111,13 +135,24 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.sm,
     gap: Spacing.xs,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   backButton: {
-    alignSelf: 'flex-start',
     paddingVertical: Spacing.xs,
   },
   backLabel: {
     fontSize: FontSize.sm,
     fontWeight: FontWeight.medium,
+  },
+  favoriteButton: {
+    paddingVertical: Spacing.xs,
+    paddingLeft: Spacing.md,
+  },
+  favoriteIcon: {
+    fontSize: FontSize.xl,
   },
   headerTitle: {
     fontSize: FontSize.lg,

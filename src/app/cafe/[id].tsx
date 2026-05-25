@@ -266,6 +266,7 @@ export default function CafeDetailScreen() {
                 placeholderTextColor={theme.textMuted}
                 multiline
                 numberOfLines={3}
+                maxLength={2000}
                 value={draftComment}
                 onChangeText={setDraftComment}
                 editable={!isSubmitting}
@@ -327,6 +328,9 @@ export default function CafeDetailScreen() {
                     {formatDate(review.created_at)}
                   </ThemedText>
                 </View>
+                <ThemedText style={[styles.reviewAuthor, { color: theme.textMuted }]}>
+                  {review.profiles?.display_name ?? 'Usuário'}
+                </ThemedText>
                 {review.comment ? (
                   <ThemedText style={[styles.reviewComment, { color: theme.textSecondary }]}>
                     {review.comment}
@@ -510,6 +514,10 @@ const styles = StyleSheet.create({
   },
   reviewDate: {
     fontSize: FontSize.xs,
+  },
+  reviewAuthor: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.medium,
   },
   reviewComment: {
     fontSize: FontSize.sm,

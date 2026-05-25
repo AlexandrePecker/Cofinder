@@ -69,8 +69,13 @@ Deno.serve(async (req) => {
 
   const photoUrl = `https://places.googleapis.com/v1/${photoRef}/media?maxWidthPx=${maxWidth}&key=${apiKey}`;
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+
   try {
-    const res = await fetch(photoUrl);
+    const res = await fetch(photoUrl, { signal: controller.signal });
+    clearTimeout(timer);
+
     if (!res.ok) {
       return new Response(JSON.stringify({ error: `Places photo error ${res.status}` }), {
         status: res.status,
@@ -88,9 +93,10 @@ Deno.serve(async (req) => {
       },
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
+    clearTimeout(timer);
+    const isTimeout = err instanceof Error && err.name === 'AbortError';
+    return new Response(JSON.stringify({ error: isTimeout ? 'Photo fetch timeout' : 'Internal server error' }), {
+      status: isTimeout ? 504 : 502,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

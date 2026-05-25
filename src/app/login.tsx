@@ -155,6 +155,7 @@ export default function LoginScreen() {
               onPress={handleEmailSignIn}
               style={({ pressed }) => [
                 styles.primaryButton,
+                Shadow.card,
                 { backgroundColor: theme.primary, opacity: pressed || isSigningIn ? 0.75 : 1 },
               ]}
             >

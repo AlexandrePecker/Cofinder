@@ -7,7 +7,7 @@ import type { Review } from './types';
 async function fetchReviews(placeId: string): Promise<Review[]> {
   const { data, error } = await supabase
     .from('reviews')
-    .select('*')
+    .select('*, profiles(display_name)')
     .eq('place_id', placeId)
     .order('created_at', { ascending: false })
     .limit(50);

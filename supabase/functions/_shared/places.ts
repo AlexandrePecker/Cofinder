@@ -56,31 +56,45 @@ export async function searchNearbyCafes(
   lng: number,
   radius: number,
 ): Promise<Cafe[]> {
-  const res = await fetch(NEARBY_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': [
-        'places.id',
-        'places.displayName',
-        'places.formattedAddress',
-        'places.location',
-        'places.rating',
-        'places.userRatingCount',
-        'places.priceLevel',
-        'places.photos',
-      ].join(','),
-    },
-    body: JSON.stringify({
-      includedTypes: ['cafe'],
-      maxResultCount: 20,
-      rankPreference: 'POPULARITY',
-      locationRestriction: {
-        circle: { center: { latitude: lat, longitude: lng }, radius },
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+
+  let res: Response;
+  try {
+    res = await fetch(NEARBY_ENDPOINT, {
+      signal: controller.signal,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': [
+          'places.id',
+          'places.displayName',
+          'places.formattedAddress',
+          'places.location',
+          'places.rating',
+          'places.userRatingCount',
+          'places.priceLevel',
+          'places.photos',
+        ].join(','),
       },
-    }),
-  });
+      body: JSON.stringify({
+        includedTypes: ['cafe'],
+        maxResultCount: 20,
+        rankPreference: 'POPULARITY',
+        locationRestriction: {
+          circle: { center: { latitude: lat, longitude: lng }, radius },
+        },
+      }),
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Places API timeout');
+    }
+    throw err;
+  }
+  clearTimeout(timer);
 
   if (!res.ok) {
     const detail = await res.text();

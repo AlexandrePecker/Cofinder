@@ -5,4 +5,5 @@ export interface Review {
   rating: number;
   comment: string | null;
   created_at: string;
+  profiles: { display_name: string | null } | null;
 }

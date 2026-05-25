@@ -22,6 +22,20 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'Method not allowed' }, 405);
   }
 
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return jsonResponse({ error: 'Missing authorization' }, 401);
+  }
+  const authClient = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    { global: { headers: { Authorization: authHeader } } },
+  );
+  const { error: authError } = await authClient.auth.getUser();
+  if (authError) {
+    return jsonResponse({ error: 'Unauthorized' }, 401);
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
     const lat = Number(body.lat);

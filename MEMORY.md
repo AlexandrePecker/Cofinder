@@ -5,8 +5,12 @@ See `CLAUDE.md` (locked decisions) and `ARCHITECTURE.md` (full rationale).
 
 ## Current state (2026-05-24)
 
-Foundation + backend + auth are **written and committed**; not yet verified against a
-live Postgres / Places API (deferred to a batch verification step).
+Foundation + backend + auth are **written, committed, and live-verified** against a
+local Supabase stack: 3 migrations apply clean, RLS + policies confirmed on all 4
+tables, both auth triggers present, `db lint` clean, and the `nearby-cafes` Edge
+Function runs end-to-end (input validation + cache path + Places fetch; only a real
+`GOOGLE_PLACES_API_KEY` is still needed for live cafe data). Real Google login still
+needs Google Cloud OAuth credentials.
 
 Done:
 

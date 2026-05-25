@@ -55,8 +55,7 @@ Deno.serve(async (req) => {
       .eq('cell_key', key)
       .maybeSingle();
 
-    const isFresh =
-      cached && Date.now() - new Date(cached.fetched_at).getTime() < CACHE_TTL_MS;
+    const isFresh = cached && Date.now() - new Date(cached.fetched_at).getTime() < CACHE_TTL_MS;
 
     if (isFresh && cached.place_ids.length > 0) {
       const { data: cafes } = await supabase
@@ -70,12 +69,10 @@ Deno.serve(async (req) => {
     const fetchedAt = new Date().toISOString();
 
     if (cafes.length > 0) {
-      await supabase
-        .from('cafes')
-        .upsert(
-          cafes.map((c) => ({ ...c, fetched_at: fetchedAt })),
-          { onConflict: 'place_id' },
-        );
+      await supabase.from('cafes').upsert(
+        cafes.map((c) => ({ ...c, fetched_at: fetchedAt })),
+        { onConflict: 'place_id' },
+      );
     }
 
     await supabase.from('places_search_cache').upsert({

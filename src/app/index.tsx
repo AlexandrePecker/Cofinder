@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,8 +12,25 @@ import { useNearbyCafes } from '@/features/cafes/use-nearby-cafes';
 import { useTheme } from '@/hooks/use-theme';
 import { FontSize, FontWeight, Spacing } from '@/theme';
 
+function navigateToCafe(router: ReturnType<typeof useRouter>, cafe: Cafe) {
+  router.push({
+    pathname: '/cafe/[id]',
+    params: {
+      id: cafe.place_id,
+      name: cafe.name,
+      address: cafe.address ?? '',
+      rating: cafe.rating?.toString() ?? '',
+      user_ratings_total: cafe.user_ratings_total?.toString() ?? '',
+      price_level: cafe.price_level?.toString() ?? '',
+      lat: cafe.lat.toString(),
+      lng: cafe.lng.toString(),
+    },
+  });
+}
+
 export default function HomeScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const location = useLocation();
 
   const lat = location.status === 'ready' ? location.lat : null;
@@ -78,7 +96,9 @@ export default function HomeScreen() {
           <FlatList
             data={cafes ?? []}
             keyExtractor={(item) => item.place_id}
-            renderItem={({ item }) => <CafeCard cafe={item} onPress={() => {}} />}
+            renderItem={({ item }) => (
+              <CafeCard cafe={item} onPress={() => navigateToCafe(router, item)} />
+            )}
             contentContainerStyle={styles.listContent}
             ListEmptyComponent={
               <View style={styles.listFeedback}>

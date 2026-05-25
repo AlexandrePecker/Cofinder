@@ -1,20 +1,15 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Avatar } from '@/components/avatar';
 import { CafeSkeletonList } from '@/components/cafe-skeleton';
-import { ProfileSheet } from '@/components/profile-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { useAuth } from '@/features/auth/auth-context';
 import { CafeCard } from '@/features/cafes/cafe-card';
 import type { Cafe } from '@/features/cafes/types';
 import { useLocation } from '@/features/cafes/use-location';
 import { useNearbyCafes } from '@/features/cafes/use-nearby-cafes';
-import { useProfile } from '@/features/profile/use-profile';
 import { useTheme } from '@/hooks/use-theme';
 import { FontSize, FontWeight, Spacing } from '@/theme';
 
@@ -34,31 +29,15 @@ function navigateToCafe(router: ReturnType<typeof useRouter>, cafe: Cafe) {
   });
 }
 
-export default function HomeScreen() {
+export default function NearbyScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { session } = useAuth();
   const location = useLocation();
-  const { data: profile } = useProfile();
-  const [profileOpen, setProfileOpen] = useState(false);
 
   const lat = location.status === 'ready' ? location.lat : null;
   const lng = location.status === 'ready' ? location.lng : null;
 
   const { data: cafes, isLoading, error } = useNearbyCafes(lat, lng);
-
-  const user = session?.user;
-  const oauthAvatarUri =
-    (user?.user_metadata?.avatar_url as string | undefined) ??
-    (user?.user_metadata?.picture as string | undefined) ??
-    null;
-  const avatarUri = profile?.avatar_url ?? oauthAvatarUri;
-  const displayName =
-    profile?.display_name ??
-    (user?.user_metadata?.full_name as string | undefined) ??
-    (user?.user_metadata?.name as string | undefined) ??
-    user?.email ??
-    null;
 
   if (location.status === 'loading') {
     return (
@@ -85,22 +64,6 @@ export default function HomeScreen() {
         style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.surface }]}
       >
         <ThemedText style={styles.appName}>Cofinder</ThemedText>
-        <View style={styles.headerActions}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Favoritos"
-            onPress={() => router.push('/favorites')}
-            style={({ pressed }) => [styles.favButton, { opacity: pressed ? 0.6 : 1 }]}
-          >
-            <ThemedText style={[styles.favIcon, { color: theme.rating }]}>♥</ThemedText>
-          </Pressable>
-          <Avatar
-            uri={avatarUri}
-            name={displayName}
-            size={34}
-            onPress={() => setProfileOpen(true)}
-          />
-        </View>
       </SafeAreaView>
 
       <MapView
@@ -118,6 +81,7 @@ export default function HomeScreen() {
             key={cafe.place_id}
             coordinate={{ latitude: cafe.lat, longitude: cafe.lng }}
             title={cafe.name}
+            onPress={() => navigateToCafe(router, cafe)}
           />
         ))}
       </MapView>
@@ -153,8 +117,6 @@ export default function HomeScreen() {
           />
         )}
       </SafeAreaView>
-
-      <ProfileSheet visible={profileOpen} onClose={() => setProfileOpen(false)} />
     </ThemedView>
   );
 }
@@ -170,9 +132,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -181,17 +140,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: FontWeight.bold,
     letterSpacing: -0.3,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  favButton: {
-    padding: Spacing.xs,
-  },
-  favIcon: {
-    fontSize: FontSize.xl,
   },
   map: {
     flex: 0.45,

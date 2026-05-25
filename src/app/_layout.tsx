@@ -23,7 +23,7 @@ function RootNavigator() {
     if (!session && !onLoginScreen) {
       router.replace('/login');
     } else if (session && onLoginScreen) {
-      router.replace('/');
+      router.replace('/(tabs)');
     }
   }, [session, isLoading, segments, router]);
 

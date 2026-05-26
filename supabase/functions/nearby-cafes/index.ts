@@ -7,7 +7,7 @@ import { searchNearbyCafes } from '../_shared/places.ts';
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const DEFAULT_RADIUS_M = 20000;
-const MAX_RADIUS_M = 20000;
+const MAX_RADIUS_M = 50000;
 
 // ~1.1km grid (2 decimal places) keyed with the radius bucket.
 function cellKey(lat: number, lng: number, radius: number): string {

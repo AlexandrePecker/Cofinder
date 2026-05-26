@@ -32,7 +32,7 @@ function navigateToCafe(router: ReturnType<typeof useRouter>, cafe: Cafe) {
   });
 }
 
-const DEFAULT_FILTERS: CafeFilters = { minRating: null, priceLevel: null };
+const DEFAULT_FILTERS: CafeFilters = { minRating: null, priceLevel: null, radiusKm: 20 };
 
 export default function NearbyScreen() {
   const theme = useTheme();
@@ -44,7 +44,8 @@ export default function NearbyScreen() {
   const lat = location.status === 'ready' ? location.lat : null;
   const lng = location.status === 'ready' ? location.lng : null;
 
-  const { data: cafes, isLoading, isFetching, error, refetch } = useNearbyCafes(lat, lng);
+  const radiusM = filters.radiusKm * 1000;
+  const { data: cafes, isLoading, isFetching, error, refetch } = useNearbyCafes(lat, lng, radiusM);
 
   const filtered = (cafes ?? []).filter((cafe) => {
     if (filters.minRating !== null && (cafe.rating == null || cafe.rating < filters.minRating))
@@ -99,7 +100,7 @@ export default function NearbyScreen() {
       >
         <ThemedText style={styles.appName}>Cofinder</ThemedText>
         <ThemedText style={[styles.subtitle, { color: theme.textMuted }]}>
-          Cafeterias num raio de 20 km
+          Cafeterias num raio de {filters.radiusKm} km
         </ThemedText>
       </SafeAreaView>
 

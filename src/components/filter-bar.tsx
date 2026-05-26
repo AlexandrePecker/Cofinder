@@ -7,12 +7,21 @@ import { FontSize, FontWeight, Radius, Spacing } from '@/theme';
 export interface CafeFilters {
   minRating: number | null;
   priceLevel: number | null;
+  radiusKm: number;
 }
 
 interface FilterBarProps {
   filters: CafeFilters;
   onChange: (filters: CafeFilters) => void;
 }
+
+const RADIUS_OPTIONS: { label: string; value: number }[] = [
+  { label: '1 km', value: 1 },
+  { label: '5 km', value: 5 },
+  { label: '10 km', value: 10 },
+  { label: '20 km', value: 20 },
+  { label: '50 km', value: 50 },
+];
 
 const RATING_OPTIONS: { label: string; value: number | null }[] = [
   { label: 'Todas', value: null },
@@ -31,8 +40,11 @@ const PRICE_OPTIONS: { label: string; value: number | null }[] = [
 export function FilterBar({ filters, onChange }: FilterBarProps) {
   const theme = useTheme();
 
-  const isActive = (type: 'rating' | 'price', value: number | null) =>
-    type === 'rating' ? filters.minRating === value : filters.priceLevel === value;
+  const isActive = (type: 'rating' | 'price' | 'radius', value: number | null) => {
+    if (type === 'rating') return filters.minRating === value;
+    if (type === 'price') return filters.priceLevel === value;
+    return filters.radiusKm === value;
+  };
 
   const chipStyle = (active: boolean) => [
     styles.chip,
@@ -53,6 +65,21 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
     >
+      {RADIUS_OPTIONS.map((opt) => {
+        const active = isActive('radius', opt.value);
+        return (
+          <Pressable
+            key={`radius-${opt.value}`}
+            onPress={() => onChange({ ...filters, radiusKm: opt.value })}
+            style={({ pressed }) => [...chipStyle(active), { opacity: pressed ? 0.7 : 1 }]}
+          >
+            <ThemedText style={chipTextStyle(active)}>{opt.label}</ThemedText>
+          </Pressable>
+        );
+      })}
+
+      <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
       {RATING_OPTIONS.map((opt) => {
         const active = isActive('rating', opt.value);
         return (

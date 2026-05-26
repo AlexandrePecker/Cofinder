@@ -4,7 +4,8 @@ import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, View } fro
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CafeSkeletonList } from '@/components/cafe-skeleton';
-import { FilterBar, type CafeFilters } from '@/components/filter-bar';
+import { type CafeFilters } from '@/components/filter-bar';
+import { activeFilterCount, FilterSheet } from '@/components/filter-sheet';
 import { SearchBar } from '@/components/search-bar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -13,7 +14,7 @@ import type { Cafe } from '@/features/cafes/types';
 import { useLocation } from '@/features/cafes/use-location';
 import { useNearbyCafes } from '@/features/cafes/use-nearby-cafes';
 import { useTheme } from '@/hooks/use-theme';
-import { FontSize, FontWeight, Spacing } from '@/theme';
+import { FontSize, FontWeight, Radius, Spacing } from '@/theme';
 
 function navigateToCafe(router: ReturnType<typeof useRouter>, cafe: Cafe) {
   router.push({
@@ -45,6 +46,8 @@ export default function NearbyScreen() {
   const location = useLocation();
   const [filters, setFilters] = useState<CafeFilters>(DEFAULT_FILTERS);
   const [query, setQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const activeCount = activeFilterCount(filters);
 
   const lat = location.status === 'ready' ? location.lat : null;
   const lng = location.status === 'ready' ? location.lng : null;
@@ -110,11 +113,42 @@ export default function NearbyScreen() {
         edges={['top']}
         style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.surface }]}
       >
-        <ThemedText style={styles.appName}>Cofinder</ThemedText>
-        <ThemedText style={[styles.subtitle, { color: theme.textMuted }]}>
-          Cafeterias num raio de {filters.radiusKm} km
-        </ThemedText>
+        <View style={styles.headerRow}>
+          <View>
+            <ThemedText style={styles.appName}>Cofinder</ThemedText>
+            <ThemedText style={[styles.subtitle, { color: theme.textMuted }]}>
+              Cafeterias num raio de {filters.radiusKm} km
+            </ThemedText>
+          </View>
+          <Pressable
+            onPress={() => setShowFilters(true)}
+            style={({ pressed }) => [
+              styles.filterButton,
+              {
+                backgroundColor: activeCount > 0 ? theme.primary : theme.surfaceAlt,
+                borderColor: activeCount > 0 ? theme.primary : theme.border,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.filterButtonText,
+                { color: activeCount > 0 ? theme.textOnPrimary : theme.textSecondary },
+              ]}
+            >
+              {activeCount > 0 ? `Filtros (${activeCount})` : 'Filtros'}
+            </ThemedText>
+          </Pressable>
+        </View>
       </SafeAreaView>
+
+      <FilterSheet
+        visible={showFilters}
+        filters={filters}
+        onChange={setFilters}
+        onClose={() => setShowFilters(false)}
+      />
 
       {isLoading ? (
         <CafeSkeletonList />
@@ -137,7 +171,6 @@ export default function NearbyScreen() {
           <View style={styles.searchWrapper}>
             <SearchBar value={query} onChange={setQuery} />
           </View>
-          <FilterBar filters={filters} onChange={setFilters} />
           <FlatList
             data={filtered}
             keyExtractor={(item) => item.place_id}
@@ -183,7 +216,12 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: 2,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
   },
   appName: {
     fontSize: FontSize.lg,
@@ -192,6 +230,16 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: FontSize.xs,
+  },
+  filterButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+  },
+  filterButtonText: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.medium,
   },
   searchWrapper: {
     paddingHorizontal: Spacing.lg,

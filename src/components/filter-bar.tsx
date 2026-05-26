@@ -73,76 +73,76 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
   ];
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={styles.scroll}
-      contentContainerStyle={styles.container}
-    >
-      {RADIUS_OPTIONS.map((opt) => {
-        const active = isActive('radius', opt.value);
-        return (
-          <Pressable
-            key={`radius-${opt.value}`}
-            onPress={() => onChange({ ...filters, radiusKm: opt.value })}
-            style={({ pressed }) => [...chipStyle(active), { opacity: pressed ? 0.7 : 1 }]}
-          >
-            <ThemedText style={chipTextStyle(active)}>{opt.label}</ThemedText>
-          </Pressable>
-        );
-      })}
+    <View style={styles.wrapper}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.container}
+      >
+        {RADIUS_OPTIONS.map((opt) => {
+          const active = isActive('radius', opt.value);
+          return (
+            <Pressable
+              key={`radius-${opt.value}`}
+              onPress={() => onChange({ ...filters, radiusKm: opt.value })}
+              style={({ pressed }) => [...chipStyle(active), { opacity: pressed ? 0.7 : 1 }]}
+            >
+              <ThemedText style={chipTextStyle(active)}>{opt.label}</ThemedText>
+            </Pressable>
+          );
+        })}
 
-      <View style={[styles.divider, { backgroundColor: theme.border }]} />
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-      {RATING_OPTIONS.map((opt) => {
-        const active = isActive('rating', opt.value);
-        return (
-          <Pressable
-            key={`rating-${opt.value}`}
-            onPress={() => onChange({ ...filters, minRating: opt.value })}
-            style={({ pressed }) => [...chipStyle(active), { opacity: pressed ? 0.7 : 1 }]}
-          >
-            <ThemedText style={chipTextStyle(active)}>{opt.label}</ThemedText>
-          </Pressable>
-        );
-      })}
+        {RATING_OPTIONS.map((opt) => {
+          const active = isActive('rating', opt.value);
+          return (
+            <Pressable
+              key={`rating-${opt.value}`}
+              onPress={() => onChange({ ...filters, minRating: opt.value })}
+              style={({ pressed }) => [...chipStyle(active), { opacity: pressed ? 0.7 : 1 }]}
+            >
+              <ThemedText style={chipTextStyle(active)}>{opt.label}</ThemedText>
+            </Pressable>
+          );
+        })}
 
-      <View style={[styles.divider, { backgroundColor: theme.border }]} />
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-      {PRICE_OPTIONS.map((opt) => {
-        const active = isActive('price', opt.value);
-        return (
-          <Pressable
-            key={`price-${opt.value}`}
-            onPress={() => onChange({ ...filters, priceLevel: opt.value })}
-            style={({ pressed }) => [...chipStyle(active), { opacity: pressed ? 0.7 : 1 }]}
-          >
-            <ThemedText style={chipTextStyle(active)}>{opt.label}</ThemedText>
-          </Pressable>
-        );
-      })}
+        {PRICE_OPTIONS.map((opt) => {
+          const active = isActive('price', opt.value);
+          return (
+            <Pressable
+              key={`price-${opt.value}`}
+              onPress={() => onChange({ ...filters, priceLevel: opt.value })}
+              style={({ pressed }) => [...chipStyle(active), { opacity: pressed ? 0.7 : 1 }]}
+            >
+              <ThemedText style={chipTextStyle(active)}>{opt.label}</ThemedText>
+            </Pressable>
+          );
+        })}
 
-      <View style={[styles.divider, { backgroundColor: theme.border }]} />
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-      {SORT_OPTIONS.map((opt) => {
-        const active = isActive('sort', opt.value);
-        return (
-          <Pressable
-            key={`sort-${opt.value}`}
-            onPress={() => onChange({ ...filters, sortBy: opt.value })}
-            style={({ pressed }) => [...chipStyle(active), { opacity: pressed ? 0.7 : 1 }]}
-          >
-            <ThemedText style={chipTextStyle(active)}>{opt.label}</ThemedText>
-          </Pressable>
-        );
-      })}
-    </ScrollView>
+        {SORT_OPTIONS.map((opt) => {
+          const active = isActive('sort', opt.value);
+          return (
+            <Pressable
+              key={`sort-${opt.value}`}
+              onPress={() => onChange({ ...filters, sortBy: opt.value })}
+              style={({ pressed }) => [...chipStyle(active), { opacity: pressed ? 0.7 : 1 }]}
+            >
+              <ThemedText style={chipTextStyle(active)}>{opt.label}</ThemedText>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: {
-    flexGrow: 0,
+  wrapper: {
     paddingVertical: Spacing.sm,
   },
   container: {

@@ -21,6 +21,5 @@ export function useReviews(placeId: string) {
     queryKey: ['reviews', placeId],
     queryFn: () => fetchReviews(placeId),
     enabled: !!placeId,
-    staleTime: 2 * 60 * 1000,
   });
 }

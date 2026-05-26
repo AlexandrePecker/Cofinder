@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CafeSkeletonList } from '@/components/cafe-skeleton';
 import { FilterBar, type CafeFilters } from '@/components/filter-bar';
+import { SearchBar } from '@/components/search-bar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { CafeCard } from '@/features/cafes/cafe-card';
@@ -38,6 +39,7 @@ export default function NearbyScreen() {
   const router = useRouter();
   const location = useLocation();
   const [filters, setFilters] = useState<CafeFilters>(DEFAULT_FILTERS);
+  const [query, setQuery] = useState('');
 
   const lat = location.status === 'ready' ? location.lat : null;
   const lng = location.status === 'ready' ? location.lng : null;
@@ -48,6 +50,8 @@ export default function NearbyScreen() {
     if (filters.minRating !== null && (cafe.rating == null || cafe.rating < filters.minRating))
       return false;
     if (filters.priceLevel !== null && cafe.price_level !== filters.priceLevel) return false;
+    if (query.trim() !== '' && !cafe.name.toLowerCase().includes(query.trim().toLowerCase()))
+      return false;
     return true;
   });
 
@@ -117,6 +121,9 @@ export default function NearbyScreen() {
         </View>
       ) : (
         <>
+          <View style={styles.searchWrapper}>
+            <SearchBar value={query} onChange={setQuery} />
+          </View>
           <FilterBar filters={filters} onChange={setFilters} />
           <FlatList
             data={filtered}
@@ -172,6 +179,11 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: FontSize.xs,
+  },
+  searchWrapper: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
   },
   listContent: {
     paddingTop: Spacing.sm,

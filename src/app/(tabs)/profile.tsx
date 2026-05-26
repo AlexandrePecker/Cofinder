@@ -166,10 +166,39 @@ function NameForm({
   );
 }
 
+function StatsRowSkeleton() {
+  const theme = useTheme();
+  const [opacity] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.35, duration: 700, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [opacity]);
+
+  return (
+    <View style={styles.statsRow}>
+      {[0, 1, 2].map((i) => (
+        <Animated.View
+          key={i}
+          style={[styles.statCard, { backgroundColor: theme.surfaceAlt, opacity }]}
+        />
+      ))}
+    </View>
+  );
+}
+
 function StatsRow() {
   const theme = useTheme();
-  const { data: reviews = [] } = useMyReviews();
-  const { data: favoriteIds } = useFavorites();
+  const { data: reviews = [], isLoading: reviewsLoading } = useMyReviews();
+  const { data: favoriteIds, isLoading: favsLoading } = useFavorites();
+
+  if (reviewsLoading || favsLoading) return <StatsRowSkeleton />;
 
   const reviewCount = reviews.length;
   const favCount = favoriteIds?.size ?? 0;
@@ -186,15 +215,8 @@ function StatsRow() {
 
   return (
     <View style={styles.statsRow}>
-      {stats.map((stat, i) => (
-        <View
-          key={stat.label}
-          style={[
-            styles.statCard,
-            { backgroundColor: theme.surfaceAlt },
-            i === 1 && { marginHorizontal: Spacing.xs },
-          ]}
-        >
+      {stats.map((stat) => (
+        <View key={stat.label} style={[styles.statCard, { backgroundColor: theme.surfaceAlt }]}>
           <ThemedText style={styles.statValue}>{stat.value}</ThemedText>
           <ThemedText style={[styles.statLabel, { color: theme.textMuted }]}>
             {stat.label}
@@ -566,6 +588,7 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
+    gap: Spacing.sm,
   },
   statCard: {
     flex: 1,

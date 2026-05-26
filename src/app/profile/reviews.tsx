@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -49,23 +50,33 @@ export default function ProfileReviewsScreen() {
   const router = useRouter();
   const { data: reviews = [], isLoading } = useMyReviews();
 
-  function navigateToReview(review: MyReview) {
-    if (!review.cafes) return;
-    router.push({
-      pathname: '/cafe/[id]',
-      params: {
-        id: review.place_id,
-        name: review.cafes.name,
-        address: review.cafes.address ?? '',
-        rating: review.cafes.rating?.toString() ?? '',
-        user_ratings_total: review.cafes.user_ratings_total?.toString() ?? '',
-        price_level: review.cafes.price_level?.toString() ?? '',
-        lat: review.cafes.lat.toString(),
-        lng: review.cafes.lng.toString(),
-        photo_ref: review.cafes.photo_ref ?? '',
-      },
-    });
-  }
+  const navigateToReview = useCallback(
+    (review: MyReview) => {
+      if (!review.cafes) return;
+      router.push({
+        pathname: '/cafe/[id]',
+        params: {
+          id: review.place_id,
+          name: review.cafes.name,
+          address: review.cafes.address ?? '',
+          rating: review.cafes.rating?.toString() ?? '',
+          user_ratings_total: review.cafes.user_ratings_total?.toString() ?? '',
+          price_level: review.cafes.price_level?.toString() ?? '',
+          lat: review.cafes.lat.toString(),
+          lng: review.cafes.lng.toString(),
+          photo_ref: review.cafes.photo_ref ?? '',
+        },
+      });
+    },
+    [router],
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: MyReview }) => (
+      <ReviewItem review={item} onPress={() => navigateToReview(item)} />
+    ),
+    [navigateToReview],
+  );
 
   return (
     <ThemedView style={styles.container}>
@@ -85,9 +96,7 @@ export default function ProfileReviewsScreen() {
       <FlatList
         data={reviews}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ReviewItem review={item} onPress={() => navigateToReview(item)} />
-        )}
+        renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           isLoading ? null : (

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -18,12 +18,25 @@ function RootNavigator() {
   const segments = useSegments();
   const router = useRouter();
   const [onboardingSeen, setOnboardingSeen] = useState<boolean | null>(null);
+  const wasOnOnboarding = useRef(false);
 
   useEffect(() => {
     AsyncStorage.getItem('onboarding_seen')
       .then((val) => setOnboardingSeen(val === 'true'))
       .catch(() => setOnboardingSeen(true));
   }, []);
+
+  // Re-read AsyncStorage when leaving the onboarding screen so the in-memory
+  // state reflects what finish() wrote before navigating away.
+  useEffect(() => {
+    const isOnOnboarding = segments[0] === 'onboarding';
+    if (wasOnOnboarding.current && !isOnOnboarding) {
+      AsyncStorage.getItem('onboarding_seen')
+        .then((val) => setOnboardingSeen(val === 'true'))
+        .catch(() => setOnboardingSeen(true));
+    }
+    wasOnOnboarding.current = isOnOnboarding;
+  }, [segments]);
 
   useEffect(() => {
     if (isLoading || onboardingSeen === null) return;

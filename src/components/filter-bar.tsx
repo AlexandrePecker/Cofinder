@@ -76,6 +76,7 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={styles.scroll}
       contentContainerStyle={styles.container}
     >
       {RADIUS_OPTIONS.map((opt) => {
@@ -140,11 +141,14 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
 }
 
 const styles = StyleSheet.create({
+  scroll: {
+    flexGrow: 0,
+    paddingVertical: Spacing.sm,
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
     gap: Spacing.xs,
   },
   chip: {

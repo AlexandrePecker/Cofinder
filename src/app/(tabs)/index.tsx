@@ -1,9 +1,10 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CafeSkeletonList } from '@/components/cafe-skeleton';
+import { FilterBar, type CafeFilters } from '@/components/filter-bar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { CafeCard } from '@/features/cafes/cafe-card';
@@ -30,15 +31,25 @@ function navigateToCafe(router: ReturnType<typeof useRouter>, cafe: Cafe) {
   });
 }
 
+const DEFAULT_FILTERS: CafeFilters = { minRating: null, priceLevel: null };
+
 export default function NearbyScreen() {
   const theme = useTheme();
   const router = useRouter();
   const location = useLocation();
+  const [filters, setFilters] = useState<CafeFilters>(DEFAULT_FILTERS);
 
   const lat = location.status === 'ready' ? location.lat : null;
   const lng = location.status === 'ready' ? location.lng : null;
 
   const { data: cafes, isLoading, isFetching, error, refetch } = useNearbyCafes(lat, lng);
+
+  const filtered = (cafes ?? []).filter((cafe) => {
+    if (filters.minRating !== null && (cafe.rating == null || cafe.rating < filters.minRating))
+      return false;
+    if (filters.priceLevel !== null && cafe.price_level !== filters.priceLevel) return false;
+    return true;
+  });
 
   const renderCafe = useCallback(
     ({ item }: { item: Cafe }) => (
@@ -105,21 +116,24 @@ export default function NearbyScreen() {
           </Pressable>
         </View>
       ) : (
-        <FlatList
-          data={cafes ?? []}
-          keyExtractor={(item) => item.place_id}
-          renderItem={renderCafe}
-          onRefresh={refetch}
-          refreshing={isFetching && !isLoading}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.centered}>
-              <ThemedText style={[styles.message, { color: theme.textMuted }]}>
-                Nenhuma cafeteria encontrada perto de você.
-              </ThemedText>
-            </View>
-          }
-        />
+        <>
+          <FilterBar filters={filters} onChange={setFilters} />
+          <FlatList
+            data={filtered}
+            keyExtractor={(item) => item.place_id}
+            renderItem={renderCafe}
+            onRefresh={refetch}
+            refreshing={isFetching && !isLoading}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <View style={styles.centered}>
+                <ThemedText style={[styles.message, { color: theme.textMuted }]}>
+                  Nenhuma cafeteria encontrada com esses filtros.
+                </ThemedText>
+              </View>
+            }
+          />
+        </>
       )}
     </ThemedView>
   );

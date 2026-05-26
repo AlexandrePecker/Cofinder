@@ -63,9 +63,9 @@ export default function OnboardingScreen() {
     router.replace('/login');
   }
 
-  function next() {
+  async function next() {
     if (isLast) {
-      finish();
+      await finish();
       return;
     }
     const nextIndex = index + 1;

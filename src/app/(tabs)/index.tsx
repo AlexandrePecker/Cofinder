@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CafeSkeletonList } from '@/components/cafe-skeleton';
 import { type CafeFilters } from '@/components/filter-bar';
-import { activeFilterCount, FilterSheet } from '@/components/filter-sheet';
+import { activeFilterCount, DEFAULT_FILTERS, FilterSheet } from '@/components/filter-sheet';
 import { SearchBar } from '@/components/search-bar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -32,13 +32,6 @@ function navigateToCafe(router: ReturnType<typeof useRouter>, cafe: Cafe) {
     },
   });
 }
-
-const DEFAULT_FILTERS: CafeFilters = {
-  minRating: null,
-  priceLevel: null,
-  radiusKm: 20,
-  sortBy: 'default',
-};
 
 export default function NearbyScreen() {
   const theme = useTheme();

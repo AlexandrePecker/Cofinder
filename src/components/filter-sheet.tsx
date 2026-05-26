@@ -41,7 +41,7 @@ const SORT_OPTIONS: { label: string; value: SortBy }[] = [
   { label: 'Mais avaliados', value: 'reviews' },
 ];
 
-const DEFAULT_FILTERS: CafeFilters = {
+export const DEFAULT_FILTERS: CafeFilters = {
   minRating: null,
   priceLevel: null,
   radiusKm: 20,

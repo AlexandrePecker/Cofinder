@@ -20,9 +20,9 @@ function RootNavigator() {
   const [onboardingSeen, setOnboardingSeen] = useState<boolean | null>(null);
 
   useEffect(() => {
-    AsyncStorage.getItem('onboarding_seen').then((val) => {
-      setOnboardingSeen(val === 'true');
-    });
+    AsyncStorage.getItem('onboarding_seen')
+      .then((val) => setOnboardingSeen(val === 'true'))
+      .catch(() => setOnboardingSeen(true));
   }, []);
 
   useEffect(() => {

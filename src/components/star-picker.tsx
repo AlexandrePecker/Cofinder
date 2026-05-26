@@ -26,7 +26,11 @@ export function StarPicker({ value, onChange, size = 32 }: StarPickerProps) {
           <ThemedText
             style={[
               styles.starText,
-              { fontSize: size, lineHeight: size + 8, color: star <= value ? theme.rating : theme.border },
+              {
+                fontSize: size,
+                lineHeight: size + 8,
+                color: star <= value ? theme.rating : theme.border,
+              },
             ]}
           >
             ★

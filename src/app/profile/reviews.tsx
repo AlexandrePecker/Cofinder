@@ -29,10 +29,7 @@ function ReviewItem({ review, onPress }: { review: MyReview; onPress: () => void
         </ThemedText>
       </View>
       {review.comment ? (
-        <ThemedText
-          style={[styles.itemComment, { color: theme.textSecondary }]}
-          numberOfLines={2}
-        >
+        <ThemedText style={[styles.itemComment, { color: theme.textSecondary }]} numberOfLines={2}>
           {review.comment}
         </ThemedText>
       ) : null}

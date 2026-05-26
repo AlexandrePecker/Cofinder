@@ -196,7 +196,9 @@ function StatsRow() {
           ]}
         >
           <ThemedText style={styles.statValue}>{stat.value}</ThemedText>
-          <ThemedText style={[styles.statLabel, { color: theme.textMuted }]}>{stat.label}</ThemedText>
+          <ThemedText style={[styles.statLabel, { color: theme.textMuted }]}>
+            {stat.label}
+          </ThemedText>
         </View>
       ))}
     </View>

@@ -51,11 +51,6 @@ Deno.serve(async (req) => {
     if (!Number.isFinite(radius) || radius <= 0) radius = DEFAULT_RADIUS_M;
     radius = Math.min(radius, MAX_RADIUS_M);
 
-    const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
-    if (!apiKey) {
-      return jsonResponse({ error: 'Server misconfigured: missing Places API key' }, 500);
-    }
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -77,6 +72,12 @@ Deno.serve(async (req) => {
         .select('*')
         .in('place_id', cached.place_ids);
       return jsonResponse({ source: 'cache', cafes: cafes ?? [] });
+    }
+
+    // Cache miss — need Places API key to fetch live data.
+    const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+    if (!apiKey) {
+      return jsonResponse({ error: 'Server misconfigured: missing Places API key' }, 500);
     }
 
     const cafes = await searchNearbyCafes(apiKey, lat, lng, radius);

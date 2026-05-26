@@ -122,68 +122,65 @@ export default function CafeDetailScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.header}>
-        <View style={styles.headerRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Voltar"
-            onPress={() => router.back()}
-            style={({ pressed }) => [styles.backButton, { opacity: pressed ? 0.6 : 1 }]}
-          >
-            <ThemedText style={[styles.backLabel, { color: theme.primary }]}>← Voltar</ThemedText>
-          </Pressable>
-
-          {isTogglingFavorite ? (
-            <ActivityIndicator size="small" />
-          ) : (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-              onPress={() =>
-                toggleFavorite(
-                  { placeId: params.id, isFavorited },
-                  {
-                    onSuccess: () =>
-                      showSnackbar(
-                        isFavorited ? 'Removido dos favoritos' : 'Adicionado aos favoritos',
-                        'success',
-                      ),
-                    onError: () => showSnackbar('Erro ao atualizar favorito', 'error'),
-                  },
-                )
-              }
-              style={({ pressed }) => [styles.favoriteButton, { opacity: pressed ? 0.6 : 1 }]}
-            >
-              <ThemedText style={[styles.favoriteIcon, { color: theme.rating }]}>
-                {isFavorited ? '♥' : '♡'}
-              </ThemedText>
-            </Pressable>
-          )}
-        </View>
-
-        <ThemedText style={styles.headerTitle} numberOfLines={1}>
-          {params.name}
-        </ThemedText>
-      </SafeAreaView>
-
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {photoSource ? (
-          <Image source={photoSource} style={styles.photo} contentFit="cover" transition={300} />
-        ) : !isNaN(lat) && !isNaN(lng) ? (
-          <MapView
-            style={styles.map}
-            scrollEnabled={false}
-            zoomEnabled={false}
-            initialRegion={{
-              latitude: lat,
-              longitude: lng,
-              latitudeDelta: 0.005,
-              longitudeDelta: 0.005,
-            }}
-          >
-            <Marker coordinate={{ latitude: lat, longitude: lng }} title={params.name} />
-          </MapView>
-        ) : null}
+        <View style={styles.heroContainer}>
+          {photoSource ? (
+            <Image source={photoSource} style={styles.photo} contentFit="cover" transition={300} />
+          ) : (
+            <View
+              style={[styles.photo, styles.photoPlaceholder, { backgroundColor: theme.surfaceAlt }]}
+            />
+          )}
+          <SafeAreaView edges={['top']} style={styles.heroOverlay} pointerEvents="box-none">
+            <View style={styles.headerRow}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Voltar"
+                onPress={() => router.back()}
+                style={({ pressed }) => [
+                  styles.overlayButton,
+                  { backgroundColor: theme.surface, opacity: pressed ? 0.7 : 1 },
+                ]}
+              >
+                <ThemedText style={[styles.backLabel, { color: theme.primary }]}>←</ThemedText>
+              </Pressable>
+
+              {isTogglingFavorite ? (
+                <View style={[styles.overlayButton, { backgroundColor: theme.surface }]}>
+                  <ActivityIndicator size="small" />
+                </View>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
+                  }
+                  onPress={() =>
+                    toggleFavorite(
+                      { placeId: params.id, isFavorited },
+                      {
+                        onSuccess: () =>
+                          showSnackbar(
+                            isFavorited ? 'Removido dos favoritos' : 'Adicionado aos favoritos',
+                            'success',
+                          ),
+                        onError: () => showSnackbar('Erro ao atualizar favorito', 'error'),
+                      },
+                    )
+                  }
+                  style={({ pressed }) => [
+                    styles.overlayButton,
+                    { backgroundColor: theme.surface, opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <ThemedText style={[styles.favoriteIcon, { color: theme.rating }]}>
+                    {isFavorited ? '♥' : '♡'}
+                  </ThemedText>
+                </Pressable>
+              )}
+            </View>
+          </SafeAreaView>
+        </View>
 
         {/* Cafe info */}
         <View style={[styles.card, Shadow.card, { backgroundColor: theme.surface }]}>
@@ -212,6 +209,24 @@ export default function CafeDetailScreen() {
             <ThemedText style={[styles.price, { color: theme.textMuted }]}>
               {PRICE_LABEL[priceLevel]}
             </ThemedText>
+          ) : null}
+
+          {!isNaN(lat) && !isNaN(lng) ? (
+            <MapView
+              style={styles.miniMap}
+              scrollEnabled={false}
+              zoomEnabled={false}
+              pitchEnabled={false}
+              rotateEnabled={false}
+              initialRegion={{
+                latitude: lat,
+                longitude: lng,
+                latitudeDelta: 0.004,
+                longitudeDelta: 0.004,
+              }}
+            >
+              <Marker coordinate={{ latitude: lat, longitude: lng }} title={params.name} />
+            </MapView>
           ) : null}
         </View>
 
@@ -349,43 +364,51 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.sm,
-    gap: Spacing.xs,
+  heroContainer: {
+    width: '100%',
+    height: 280,
+  },
+  photo: {
+    width: '100%',
+    height: 280,
+  },
+  photoPlaceholder: {},
+  heroOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
   },
-  backButton: {
-    paddingVertical: Spacing.xs,
+  overlayButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadow.card,
   },
   backLabel: {
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
-  },
-  favoriteButton: {
-    paddingVertical: Spacing.xs,
-    paddingLeft: Spacing.md,
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.semibold,
   },
   favoriteIcon: {
-    fontSize: FontSize.xl,
-  },
-  headerTitle: {
     fontSize: FontSize.lg,
-    fontWeight: FontWeight.bold,
   },
   scrollContent: {
     paddingBottom: Spacing.xxxl,
   },
-  photo: {
-    width: '100%',
-    height: 220,
-  },
-  map: {
-    height: 200,
+  miniMap: {
+    height: 150,
+    borderRadius: Radius.md,
+    overflow: 'hidden',
+    marginTop: Spacing.xs,
   },
   card: {
     margin: Spacing.lg,

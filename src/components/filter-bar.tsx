@@ -4,10 +4,13 @@ import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { FontSize, FontWeight, Radius, Spacing } from '@/theme';
 
+export type SortBy = 'default' | 'rating' | 'reviews';
+
 export interface CafeFilters {
   minRating: number | null;
   priceLevel: number | null;
   radiusKm: number;
+  sortBy: SortBy;
 }
 
 interface FilterBarProps {
@@ -21,6 +24,12 @@ const RADIUS_OPTIONS: { label: string; value: number }[] = [
   { label: '10 km', value: 10 },
   { label: '20 km', value: 20 },
   { label: '50 km', value: 50 },
+];
+
+const SORT_OPTIONS: { label: string; value: SortBy }[] = [
+  { label: 'Relevância', value: 'default' },
+  { label: 'Melhor nota', value: 'rating' },
+  { label: 'Mais avaliados', value: 'reviews' },
 ];
 
 const RATING_OPTIONS: { label: string; value: number | null }[] = [
@@ -40,10 +49,14 @@ const PRICE_OPTIONS: { label: string; value: number | null }[] = [
 export function FilterBar({ filters, onChange }: FilterBarProps) {
   const theme = useTheme();
 
-  const isActive = (type: 'rating' | 'price' | 'radius', value: number | null) => {
+  const isActive = (
+    type: 'rating' | 'price' | 'radius' | 'sort',
+    value: number | null | string,
+  ) => {
     if (type === 'rating') return filters.minRating === value;
     if (type === 'price') return filters.priceLevel === value;
-    return filters.radiusKm === value;
+    if (type === 'radius') return filters.radiusKm === value;
+    return filters.sortBy === value;
   };
 
   const chipStyle = (active: boolean) => [
@@ -101,6 +114,21 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
           <Pressable
             key={`price-${opt.value}`}
             onPress={() => onChange({ ...filters, priceLevel: opt.value })}
+            style={({ pressed }) => [...chipStyle(active), { opacity: pressed ? 0.7 : 1 }]}
+          >
+            <ThemedText style={chipTextStyle(active)}>{opt.label}</ThemedText>
+          </Pressable>
+        );
+      })}
+
+      <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+      {SORT_OPTIONS.map((opt) => {
+        const active = isActive('sort', opt.value);
+        return (
+          <Pressable
+            key={`sort-${opt.value}`}
+            onPress={() => onChange({ ...filters, sortBy: opt.value })}
             style={({ pressed }) => [...chipStyle(active), { opacity: pressed ? 0.7 : 1 }]}
           >
             <ThemedText style={chipTextStyle(active)}>{opt.label}</ThemedText>

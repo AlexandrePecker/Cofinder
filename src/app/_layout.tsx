@@ -1,7 +1,8 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -16,19 +17,33 @@ function RootNavigator() {
   const { session, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const [onboardingSeen, setOnboardingSeen] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (isLoading) return;
+    AsyncStorage.getItem('onboarding_seen').then((val) => {
+      setOnboardingSeen(val === 'true');
+    });
+  }, []);
 
+  useEffect(() => {
+    if (isLoading || onboardingSeen === null) return;
+
+    const onOnboarding = segments[0] === 'onboarding';
     const onAuthScreen = segments[0] === 'login' || segments[0] === 'register';
-    if (!session && !onAuthScreen) {
+
+    if (!onboardingSeen && !onOnboarding) {
+      router.replace('/onboarding');
+      return;
+    }
+
+    if (!session && !onAuthScreen && !onOnboarding) {
       router.replace('/login');
     } else if (session && onAuthScreen) {
       router.replace('/(tabs)');
     }
-  }, [session, isLoading, segments, router]);
+  }, [session, isLoading, segments, router, onboardingSeen]);
 
-  if (isLoading) {
+  if (isLoading || onboardingSeen === null) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator />

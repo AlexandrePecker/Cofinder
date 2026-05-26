@@ -32,7 +32,12 @@ function navigateToCafe(router: ReturnType<typeof useRouter>, cafe: Cafe) {
   });
 }
 
-const DEFAULT_FILTERS: CafeFilters = { minRating: null, priceLevel: null, radiusKm: 20 };
+const DEFAULT_FILTERS: CafeFilters = {
+  minRating: null,
+  priceLevel: null,
+  radiusKm: 20,
+  sortBy: 'default',
+};
 
 export default function NearbyScreen() {
   const theme = useTheme();
@@ -47,14 +52,21 @@ export default function NearbyScreen() {
   const radiusM = filters.radiusKm * 1000;
   const { data: cafes, isLoading, isFetching, error, refetch } = useNearbyCafes(lat, lng, radiusM);
 
-  const filtered = (cafes ?? []).filter((cafe) => {
-    if (filters.minRating !== null && (cafe.rating == null || cafe.rating < filters.minRating))
-      return false;
-    if (filters.priceLevel !== null && cafe.price_level !== filters.priceLevel) return false;
-    if (query.trim() !== '' && !cafe.name.toLowerCase().includes(query.trim().toLowerCase()))
-      return false;
-    return true;
-  });
+  const filtered = (cafes ?? [])
+    .filter((cafe) => {
+      if (filters.minRating !== null && (cafe.rating == null || cafe.rating < filters.minRating))
+        return false;
+      if (filters.priceLevel !== null && cafe.price_level !== filters.priceLevel) return false;
+      if (query.trim() !== '' && !cafe.name.toLowerCase().includes(query.trim().toLowerCase()))
+        return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (filters.sortBy === 'rating') return (b.rating ?? 0) - (a.rating ?? 0);
+      if (filters.sortBy === 'reviews')
+        return (b.user_ratings_total ?? 0) - (a.user_ratings_total ?? 0);
+      return 0;
+    });
 
   const renderCafe = useCallback(
     ({ item }: { item: Cafe }) => (

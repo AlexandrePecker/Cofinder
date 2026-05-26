@@ -31,7 +31,7 @@ function RootNavigator() {
     const onOnboarding = segments[0] === 'onboarding';
     const onAuthScreen = segments[0] === 'login' || segments[0] === 'register';
 
-    if (!onboardingSeen && !onOnboarding) {
+    if (!onboardingSeen && !onOnboarding && !onAuthScreen) {
       router.replace('/onboarding');
       return;
     }

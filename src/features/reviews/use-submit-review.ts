@@ -10,13 +10,15 @@ interface SubmitReviewInput {
 }
 
 async function submitReview({ placeId, userId, rating, comment }: SubmitReviewInput) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('reviews')
     .upsert(
       { user_id: userId, place_id: placeId, rating, comment },
       { onConflict: 'user_id,place_id' },
-    );
+    )
+    .select('id');
   if (error) throw error;
+  if (!data || data.length === 0) throw new Error('Avaliação não foi salva. Tente novamente.');
 }
 
 export function useSubmitReview() {
@@ -24,8 +26,9 @@ export function useSubmitReview() {
 
   return useMutation({
     mutationFn: submitReview,
-    onSuccess: (_data, { placeId }) => {
+    onSuccess: (_data, { placeId, userId }) => {
       queryClient.invalidateQueries({ queryKey: ['reviews', placeId] });
+      queryClient.invalidateQueries({ queryKey: ['reviews', 'mine', userId] });
     },
   });
 }

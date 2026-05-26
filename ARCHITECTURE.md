@@ -12,8 +12,8 @@ Portfolio / personal project. No AI agent.
 | Auth + database  | **Supabase** (Postgres + Auth + RLS)                 | Managed Google OAuth, Postgres with Row Level Security, generous free tier. No server to run or patch.                                                      |
 | Cafe data        | **Google Places API (New)**                          | Best ratings/reviews/photos coverage — the core of "well-rated". Paid, so it is **cached** (see Cost).                                                      |
 | Cafe-data access | **Supabase Edge Function** (Deno)                    | Keeps the Places API key server-side; the client never sees it. Also where caching lives.                                                                   |
-| Server state     | **TanStack Query** (planned, feature phase)          | Client-side caching, retries, offline-awareness for cafe lists.                                                                                             |
-| Maps             | **react-native-maps** (planned, feature phase)       | Mature RN map component (Google provider). Native module → requires a dev build.                                                                            |
+| Server state     | **TanStack Query**                                   | Client-side caching, retries, offline-awareness for cafe lists and user data.                                                                               |
+| Maps             | **react-native-maps**                                | Mature RN map component (Google provider). Native module → requires a dev build.                                                                            |
 | Styling          | **StyleSheet + design tokens**                       | No Tailwind/NativeWind. Tokens centralize colors/spacing/type; predictable and dependency-free.                                                             |
 | Session storage  | **AsyncStorage**                                     | Supabase's documented Expo pattern; reliable for session payloads. Upgrade path: an encrypted "LargeSecureStore" adapter if at-rest encryption is required. |
 
@@ -56,16 +56,33 @@ supabase functions serve      # run Edge Functions locally
 
 ```
 src/
-  app/            Expo Router routes (thin screens) + _layout (providers + auth gate)
-  components/     Shared UI primitives (themed-text, themed-view)
-  features/       Feature modules (auth/ ; cafes/, favorites/ added in feature phase)
-  hooks/          Shared hooks (use-theme, use-color-scheme)
-  lib/            Infra clients (env, supabase)
+  app/
+    (tabs)/       Home, Favorites, Profile tabs
+    cafe/[id].tsx Cafe detail — hero photo, mini-map, reviews
+    onboarding.tsx  3-slide first-run flow (AsyncStorage flag)
+    login.tsx     Email/senha + Google OAuth
+    register.tsx
+    profile/
+      reviews.tsx   Full "my reviews" list
+    _layout.tsx   Providers + auth/onboarding gate
+  components/     Shared UI — themed-text, themed-view, filter-sheet,
+                  search-bar, star-picker, snackbar-provider, cafe-skeleton
+  features/
+    auth/         auth-context (session, signIn, signOut)
+    cafes/        use-nearby-cafes, use-favorites, use-favorite-cafes, use-location, types
+    profile/      use-profile (display name, avatar upload)
+    reviews/      use-reviews, use-submit-review, use-my-reviews, types
+  hooks/          use-theme, use-color-scheme
+  lib/            env, supabase client
   theme/          Design tokens (colors, spacing, type, radius, shadow)
 supabase/
   config.toml     Local stack + auth provider config
-  migrations/     Versioned SQL (RLS + policy in the same file as each table)
-  functions/      Edge Functions (Deno) — nearby-cafes + _shared helpers
+  migrations/     Versioned SQL — 7 migrations (RLS + policy in the same file)
+  functions/      Edge Functions (Deno):
+                    nearby-cafes  — Places proxy, cache-first, JWT-gated
+                    cafe-photo    — Places photo proxy, JWT-gated
+                    _shared/      — cors, places helpers
+  seed_dev.sql    15 SP cafes + cache entries for dev without Places API key
 scripts/
   audit-rls.sh    Enforces "RLS + policy in the same migration"
   git-hooks/      pre-commit runs the RLS audit on staged migrations
@@ -79,8 +96,9 @@ scripts/
   The anon key is safe to ship because every table is protected by RLS.
 - **RLS on every public table, with policies in the same migration.** Enforced by
   `scripts/audit-rls.sh` + a pre-commit hook — discipline alone is not trusted.
-- **Owner-scoped data**: `profiles` and `favorites` are readable/writable only by
-  their owner (`auth.uid()`). The cache tables are written only by the service role.
+- **Owner-scoped data**: `profiles`, `favorites`, and `reviews` (write) are scoped to
+  `auth.uid()`. Reviews are readable by all authenticated users. Cache tables are
+  written only by the service role.
 - **Edge Function requires a user JWT** (`verify_jwt = true`) — only signed-in users
   can trigger paid Places lookups.
 - **PKCE OAuth flow**, foreground-only token refresh, no secrets in git
@@ -100,6 +118,9 @@ Controls in place:
   area cost **zero** API calls.
 - `cafes` table stores normalized cafe records, reused across searches and the detail
   screen.
-- The function clamps radius (≤ 5km) and caps result count (20).
+- The function clamps radius (≤ 50km). Different radius values are separate cache
+  entries (radius is part of the cell key).
+- `cafe-photo` proxies photo requests with 24h `Cache-Control` — photos are not stored
+  in Supabase Storage; they are fetched on demand and cached by the HTTP layer.
 
 A user browsing the same neighborhood repeatedly hits cache, not the paid API.

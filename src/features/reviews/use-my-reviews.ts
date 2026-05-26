@@ -38,6 +38,5 @@ export function useMyReviews() {
       return (data ?? []) as unknown as MyReview[];
     },
     enabled: !!session?.user.id,
-    staleTime: 2 * 60 * 1000,
   });
 }

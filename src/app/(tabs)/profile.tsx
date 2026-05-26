@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -19,6 +20,9 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/features/auth/auth-context';
 import { useProfile, useUpdateProfile, useUploadAvatar } from '@/features/profile/use-profile';
+import { useFavoriteCafes } from '@/features/cafes/use-favorite-cafes';
+import { useFavorites } from '@/features/cafes/use-favorites';
+import { useMyReviews } from '@/features/reviews/use-my-reviews';
 import { useTheme } from '@/hooks/use-theme';
 import { FontSize, FontWeight, Radius, Spacing } from '@/theme';
 
@@ -162,6 +166,189 @@ function NameForm({
   );
 }
 
+function StatsRow() {
+  const theme = useTheme();
+  const { data: reviews = [] } = useMyReviews();
+  const { data: favoriteIds } = useFavorites();
+
+  const reviewCount = reviews.length;
+  const favCount = favoriteIds?.size ?? 0;
+  const avgRating =
+    reviewCount > 0
+      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount).toFixed(1)
+      : '—';
+
+  const stats = [
+    { label: 'Avaliações', value: String(reviewCount) },
+    { label: 'Favoritos', value: String(favCount) },
+    { label: 'Nota média', value: avgRating },
+  ];
+
+  return (
+    <View style={styles.statsRow}>
+      {stats.map((stat, i) => (
+        <View
+          key={stat.label}
+          style={[
+            styles.statCard,
+            { backgroundColor: theme.surfaceAlt },
+            i === 1 && { marginHorizontal: Spacing.xs },
+          ]}
+        >
+          <ThemedText style={styles.statValue}>{stat.value}</ThemedText>
+          <ThemedText style={[styles.statLabel, { color: theme.textMuted }]}>{stat.label}</ThemedText>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+const PREVIEW_LIMIT = 3;
+
+function FavoriteCafesSection() {
+  const theme = useTheme();
+  const router = useRouter();
+  const { data: cafes = [], isLoading } = useFavoriteCafes();
+
+  if (isLoading || cafes.length === 0) return null;
+
+  const preview = cafes.slice(0, PREVIEW_LIMIT);
+  const hasMore = cafes.length > PREVIEW_LIMIT;
+
+  return (
+    <View style={styles.reviewedSection}>
+      <View style={styles.sectionHeader}>
+        <ThemedText style={[styles.label, { color: theme.textMuted }]}>Favoritos</ThemedText>
+        {hasMore ? (
+          <Pressable
+            onPress={() => router.push('/(tabs)/favorites')}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <ThemedText style={[styles.seeAll, { color: theme.primary }]}>
+              Ver todos ({cafes.length})
+            </ThemedText>
+          </Pressable>
+        ) : null}
+      </View>
+      {preview.map((cafe) => (
+        <Pressable
+          key={cafe.place_id}
+          onPress={() =>
+            router.push({
+              pathname: '/cafe/[id]',
+              params: {
+                id: cafe.place_id,
+                name: cafe.name,
+                address: cafe.address ?? '',
+                rating: cafe.rating?.toString() ?? '',
+                user_ratings_total: cafe.user_ratings_total?.toString() ?? '',
+                price_level: cafe.price_level?.toString() ?? '',
+                lat: cafe.lat.toString(),
+                lng: cafe.lng.toString(),
+                photo_ref: cafe.photo_ref ?? '',
+              },
+            })
+          }
+          style={({ pressed }) => [
+            styles.reviewedItem,
+            { backgroundColor: theme.surfaceAlt, opacity: pressed ? 0.7 : 1 },
+          ]}
+        >
+          <View style={styles.reviewedRow}>
+            <ThemedText style={styles.reviewedName} numberOfLines={1}>
+              {cafe.name}
+            </ThemedText>
+            {cafe.rating != null ? (
+              <ThemedText style={[styles.reviewedStars, { color: theme.rating }]}>
+                ★ {cafe.rating.toFixed(1)}
+              </ThemedText>
+            ) : null}
+          </View>
+          {cafe.address ? (
+            <ThemedText style={[styles.reviewedDate, { color: theme.textMuted }]} numberOfLines={1}>
+              {cafe.address}
+            </ThemedText>
+          ) : null}
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+function ReviewedCafesSection() {
+  const theme = useTheme();
+  const router = useRouter();
+  const { data: reviews = [], isLoading } = useMyReviews();
+
+  if (isLoading || reviews.length === 0) return null;
+
+  const preview = reviews.slice(0, PREVIEW_LIMIT);
+  const hasMore = reviews.length > PREVIEW_LIMIT;
+
+  return (
+    <View style={styles.reviewedSection}>
+      <View style={styles.sectionHeader}>
+        <ThemedText style={[styles.label, { color: theme.textMuted }]}>
+          Cafeterias avaliadas
+        </ThemedText>
+        {hasMore ? (
+          <Pressable
+            onPress={() => router.push('/profile/reviews')}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <ThemedText style={[styles.seeAll, { color: theme.primary }]}>
+              Ver todas ({reviews.length})
+            </ThemedText>
+          </Pressable>
+        ) : null}
+      </View>
+      {preview.map((review) => (
+        <Pressable
+          key={review.id}
+          onPress={() => {
+            if (!review.cafes) return;
+            router.push({
+              pathname: '/cafe/[id]',
+              params: {
+                id: review.place_id,
+                name: review.cafes.name,
+                address: review.cafes.address ?? '',
+                rating: review.cafes.rating?.toString() ?? '',
+                user_ratings_total: review.cafes.user_ratings_total?.toString() ?? '',
+                price_level: review.cafes.price_level?.toString() ?? '',
+                lat: review.cafes.lat.toString(),
+                lng: review.cafes.lng.toString(),
+                photo_ref: review.cafes.photo_ref ?? '',
+              },
+            });
+          }}
+          style={({ pressed }) => [
+            styles.reviewedItem,
+            { backgroundColor: theme.surfaceAlt, opacity: pressed ? 0.7 : 1 },
+          ]}
+        >
+          <View style={styles.reviewedRow}>
+            <ThemedText style={styles.reviewedName} numberOfLines={1}>
+              {review.cafes?.name ?? review.place_id}
+            </ThemedText>
+            <ThemedText style={[styles.reviewedStars, { color: theme.rating }]}>
+              {'★'.repeat(review.rating)}
+              {'☆'.repeat(5 - review.rating)}
+            </ThemedText>
+          </View>
+          <ThemedText style={[styles.reviewedDate, { color: theme.textMuted }]}>
+            {new Date(review.created_at).toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            })}
+          </ThemedText>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
 export default function ProfileScreen() {
   const theme = useTheme();
   const { session, signOut } = useAuth();
@@ -223,6 +410,8 @@ export default function ProfileScreen() {
                 isUploading={isUploading}
               />
 
+              <StatsRow />
+
               {email ? (
                 <View style={styles.field}>
                   <ThemedText style={[styles.label, { color: theme.textMuted }]}>Email</ThemedText>
@@ -254,6 +443,10 @@ export default function ProfileScreen() {
                   )
                 }
               />
+
+              <FavoriteCafesSection />
+
+              <ReviewedCafesSection />
             </>
           )}
         </ScrollView>
@@ -368,5 +561,58 @@ const styles = StyleSheet.create({
   signOutLabel: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.medium,
+  },
+  statsRow: {
+    flexDirection: 'row',
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  statValue: {
+    fontSize: FontSize.xl,
+    fontWeight: FontWeight.bold,
+  },
+  statLabel: {
+    fontSize: FontSize.xs,
+    textAlign: 'center',
+  },
+  reviewedSection: {
+    gap: Spacing.sm,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  seeAll: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.medium,
+  },
+  reviewedItem: {
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    gap: Spacing.xs,
+  },
+  reviewedRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  reviewedName: {
+    flex: 1,
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.medium,
+  },
+  reviewedStars: {
+    fontSize: FontSize.sm,
+    letterSpacing: 1,
+  },
+  reviewedDate: {
+    fontSize: FontSize.xs,
   },
 });

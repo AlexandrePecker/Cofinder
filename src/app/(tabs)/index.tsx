@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, View } from 'react-native';
@@ -102,14 +103,11 @@ export default function NearbyScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView
-        edges={['top']}
-        style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.surface }]}
-      >
+      <SafeAreaView edges={['top']} style={styles.header}>
         <View style={styles.headerRow}>
-          <View>
+          <View style={styles.headerText}>
             <ThemedText style={styles.appName}>Cofinder</ThemedText>
-            <ThemedText style={[styles.subtitle, { color: theme.textMuted }]}>
+            <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>
               Cafeterias num raio de {filters.radiusKm} km
             </ThemedText>
           </View>
@@ -117,22 +115,18 @@ export default function NearbyScreen() {
             onPress={() => setShowFilters(true)}
             style={({ pressed }) => [
               styles.filterButton,
-              {
-                backgroundColor: activeCount > 0 ? theme.primary : theme.surfaceAlt,
-                borderColor: activeCount > 0 ? theme.primary : theme.border,
-                opacity: pressed ? 0.7 : 1,
-              },
+              { backgroundColor: theme.primary, opacity: pressed ? 0.8 : 1 },
             ]}
           >
-            <ThemedText
-              style={[
-                styles.filterButtonText,
-                { color: activeCount > 0 ? theme.textOnPrimary : theme.textSecondary },
-              ]}
-            >
+            <Ionicons name="options-outline" size={16} color={theme.textOnPrimary} />
+            <ThemedText style={[styles.filterButtonText, { color: theme.textOnPrimary }]}>
               {activeCount > 0 ? `Filtros (${activeCount})` : 'Filtros'}
             </ThemedText>
           </Pressable>
+        </View>
+
+        <View style={styles.searchWrapper}>
+          <SearchBar value={query} onChange={setQuery} />
         </View>
       </SafeAreaView>
 
@@ -160,26 +154,21 @@ export default function NearbyScreen() {
           </Pressable>
         </View>
       ) : (
-        <>
-          <View style={styles.searchWrapper}>
-            <SearchBar value={query} onChange={setQuery} />
-          </View>
-          <FlatList
-            data={filtered}
-            keyExtractor={(item) => item.place_id}
-            renderItem={renderCafe}
-            onRefresh={refetch}
-            refreshing={isFetching && !isLoading}
-            contentContainerStyle={styles.listContent}
-            ListEmptyComponent={
-              <View style={styles.centered}>
-                <ThemedText style={[styles.message, { color: theme.textMuted }]}>
-                  Nenhuma cafeteria encontrada com esses filtros.
-                </ThemedText>
-              </View>
-            }
-          />
-        </>
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.place_id}
+          renderItem={renderCafe}
+          onRefresh={refetch}
+          refreshing={isFetching && !isLoading}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <View style={styles.centered}>
+              <ThemedText style={[styles.message, { color: theme.textMuted }]}>
+                Nenhuma cafeteria encontrada com esses filtros.
+              </ThemedText>
+            </View>
+          }
+        />
       )}
     </ThemedView>
   );
@@ -205,42 +194,46 @@ const styles = StyleSheet.create({
     fontWeight: FontWeight.semibold,
   },
   header: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.sm,
-    paddingBottom: Spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   headerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: Spacing.sm,
   },
+  headerText: {
+    flex: 1,
+    gap: Spacing.xs,
+  },
   appName: {
-    fontSize: FontSize.lg,
+    fontSize: 32,
+    lineHeight: 40,
     fontWeight: FontWeight.bold,
-    letterSpacing: -0.3,
+    letterSpacing: -0.8,
   },
   subtitle: {
-    fontSize: FontSize.xs,
+    fontSize: FontSize.sm,
   },
   filterButton: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
     borderRadius: Radius.full,
-    borderWidth: 1,
+    marginTop: Spacing.xs,
   },
   filterButtonText: {
-    fontSize: FontSize.xs,
-    fontWeight: FontWeight.medium,
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
   },
   searchWrapper: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.xs,
+    paddingTop: Spacing.lg,
   },
   listContent: {
-    paddingTop: Spacing.sm,
+    paddingTop: Spacing.lg,
     paddingBottom: Spacing.lg,
   },
   message: {

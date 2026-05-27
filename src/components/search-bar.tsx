@@ -1,9 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useRef } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { FontSize, Radius, Spacing } from '@/theme';
+import { FontSize, Radius, Shadow, Spacing } from '@/theme';
 
 interface SearchBarProps {
   value: string;
@@ -25,10 +25,8 @@ export function SearchBar({
   }, [onChange]);
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}
-    >
-      <ThemedText style={[styles.icon, { color: theme.textMuted }]}>⌕</ThemedText>
+    <View style={[styles.container, Shadow.card, { backgroundColor: theme.surface }]}>
+      <Ionicons name="search" size={18} color={theme.textMuted} />
       <TextInput
         ref={inputRef}
         value={value}
@@ -47,7 +45,7 @@ export function SearchBar({
           hitSlop={8}
           style={({ pressed }) => [styles.clear, { opacity: pressed ? 0.5 : 1 }]}
         >
-          <ThemedText style={[styles.clearText, { color: theme.textMuted }]}>✕</ThemedText>
+          <Ionicons name="close-circle" size={18} color={theme.textMuted} />
         </Pressable>
       )}
     </View>
@@ -58,25 +56,17 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: Radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    gap: Spacing.xs,
-  },
-  icon: {
-    fontSize: FontSize.md,
-    lineHeight: FontSize.md + 4,
+    height: 50,
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
   },
   input: {
     flex: 1,
-    fontSize: FontSize.sm,
+    fontSize: FontSize.md,
     padding: 0,
   },
   clear: {
     padding: 2,
-  },
-  clearText: {
-    fontSize: FontSize.xs,
   },
 });

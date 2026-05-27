@@ -29,7 +29,7 @@ export function StarPicker({ value, onChange, size = 32 }: StarPickerProps) {
               {
                 fontSize: size,
                 lineHeight: size + 8,
-                color: star <= value ? theme.rating : theme.border,
+                color: star <= value ? theme.rating : theme.primaryMuted,
               },
             ]}
           >

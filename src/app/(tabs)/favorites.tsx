@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
@@ -11,7 +12,7 @@ import type { Cafe } from '@/features/cafes/types';
 import { useFavoriteCafes } from '@/features/cafes/use-favorite-cafes';
 import { useToggleFavorite } from '@/features/cafes/use-favorites';
 import { useTheme } from '@/hooks/use-theme';
-import { FontSize, FontWeight, Spacing } from '@/theme';
+import { FontSize, FontWeight, Radius, Spacing } from '@/theme';
 
 function navigateToCafe(router: ReturnType<typeof useRouter>, cafe: Cafe) {
   router.push({
@@ -37,18 +38,27 @@ export default function FavoritesScreen() {
 
   const renderCafe = useCallback(
     ({ item }: { item: Cafe }) => (
-      <CafeCard cafe={item} onPress={() => navigateToCafe(router, item)} />
+      <View style={styles.cardWrap}>
+        <CafeCard cafe={item} onPress={() => navigateToCafe(router, item)} />
+        <View style={[styles.heartBadge, { backgroundColor: theme.surfaceAlt }]}>
+          <Ionicons name="heart" size={16} color={theme.primary} />
+        </View>
+      </View>
     ),
-    [router],
+    [router, theme],
   );
+
+  const count = cafes?.length ?? 0;
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView
-        edges={['top']}
-        style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.surface }]}
-      >
+      <SafeAreaView edges={['top']} style={styles.header}>
         <ThemedText style={styles.title}>Favoritos</ThemedText>
+        {count > 0 ? (
+          <ThemedText style={[styles.count, { color: theme.textMuted }]}>
+            {count} {count === 1 ? 'lugar' : 'lugares'}
+          </ThemedText>
+        ) : null}
       </SafeAreaView>
 
       {isLoading ? (
@@ -89,18 +99,37 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.sm,
   },
   title: {
-    fontSize: FontSize.lg,
+    fontSize: 32,
+    lineHeight: 40,
     fontWeight: FontWeight.bold,
-    letterSpacing: -0.3,
+    letterSpacing: -0.8,
+  },
+  count: {
+    fontSize: FontSize.sm,
   },
   listContent: {
-    paddingTop: Spacing.sm,
+    paddingTop: Spacing.lg,
     paddingBottom: Spacing.lg,
+  },
+  cardWrap: {
+    position: 'relative',
+  },
+  heartBadge: {
+    position: 'absolute',
+    top: Spacing.xl,
+    right: Spacing.xl,
+    width: 32,
+    height: 32,
+    borderRadius: Radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   feedback: {
     flex: 1,

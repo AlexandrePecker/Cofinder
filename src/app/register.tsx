@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -6,23 +7,25 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
+import { CoffeeHero } from '@/components/coffee-hero';
+import { FormField } from '@/components/form-field';
+import { SocialButton } from '@/components/social-button';
 import { useSnackbar } from '@/components/snackbar-provider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/features/auth/auth-context';
 import { useTheme } from '@/hooks/use-theme';
-import { FontSize, FontWeight, Layout, Radius, Shadow, Spacing } from '@/theme';
+import { FontSize, FontWeight, Radius, Shadow, Spacing } from '@/theme';
 
 export default function RegisterScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { signUpWithEmail } = useAuth();
+  const { signUpWithEmail, signInWithGoogle } = useAuth();
   const { showSnackbar } = useSnackbar();
 
   const [email, setEmail] = useState('');
@@ -66,125 +69,152 @@ export default function RegisterScreen() {
     }
   }
 
-  const inputBorderColor = theme.border;
-  const inputBg = theme.surface;
+  async function handleGoogleSignIn() {
+    setError(null);
+    setIsLoading(true);
+    try {
+      await signInWithGoogle();
+    } catch (e) {
+      const msg = (e instanceof Error ? e.message : '').toLowerCase();
+      if (msg.includes('cancel') || msg.includes('dismiss') || msg.includes('abort')) {
+        // user dismissed — silent
+      } else if (msg.includes('network') || msg.includes('fetch') || msg.includes('timeout')) {
+        setError('Sem conexão. Verifique sua internet e tente novamente.');
+      } else {
+        setError('Não foi possível entrar. Tente novamente.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <ThemedView type="primarySoft" style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.hero}>
+          <CoffeeHero variant="pour" style={StyleSheet.absoluteFill} />
+        </View>
+
+        <ScrollView
+          style={[styles.sheet, { backgroundColor: theme.surface }]}
+          contentContainerStyle={styles.sheetContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+          <ThemedText style={styles.title}>Criar sua conta</ThemedText>
+
+          {error ? (
+            <ThemedText style={[styles.error, { color: theme.danger }]}>{error}</ThemedText>
+          ) : null}
+
+          <SocialButton
+            kind="google"
+            label="Continuar com Google"
+            onPress={handleGoogleSignIn}
+            disabled={isLoading}
+          />
+
+          <View style={styles.dividerRow}>
+            <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+            <ThemedText style={[styles.dividerLabel, { color: theme.textMuted }]}>ou</ThemedText>
+            <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+          </View>
+
+          <FormField
+            label="E-mail"
+            placeholder="seu@email.com"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            autoComplete="email"
+            textContentType="emailAddress"
+            value={email}
+            onChangeText={setEmail}
+            editable={!isLoading}
+          />
+          <FormField
+            label="Senha"
+            placeholder="Mínimo 6 caracteres"
+            password
+            autoComplete="new-password"
+            textContentType="newPassword"
+            value={password}
+            onChangeText={setPassword}
+            editable={!isLoading}
+          />
+          <FormField
+            label="Confirmar senha"
+            placeholder="••••••••"
+            password
+            autoComplete="new-password"
+            textContentType="newPassword"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            editable={!isLoading}
+          />
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Criar conta"
+            disabled={isLoading}
+            onPress={handleRegister}
+            style={({ pressed }) => [
+              styles.primaryButton,
+              Shadow.card,
+              { backgroundColor: theme.primary, opacity: pressed || isLoading ? 0.75 : 1 },
+            ]}
           >
-            <View style={styles.header}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Voltar"
-                onPress={() => router.back()}
-                style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
-              >
-                <ThemedText style={[styles.backLabel, { color: theme.primary }]}>
-                  ← Voltar
-                </ThemedText>
-              </Pressable>
-            </View>
-
-            <View style={styles.titleBlock}>
-              <ThemedText style={styles.title}>Criar conta</ThemedText>
-              <ThemedText style={[styles.subtitle, { color: theme.textMuted }]}>
-                Comece a avaliar e descobrir cafeterias
+            {isLoading ? (
+              <ActivityIndicator color={theme.textOnPrimary} />
+            ) : (
+              <ThemedText style={[styles.primaryButtonText, { color: theme.textOnPrimary }]}>
+                Criar conta
               </ThemedText>
-            </View>
+            )}
+          </Pressable>
 
-            <View style={styles.form}>
-              {error ? (
-                <ThemedText style={[styles.error, { color: theme.danger }]}>{error}</ThemedText>
-              ) : null}
+          <ThemedText style={[styles.terms, { color: theme.textMuted }]}>
+            Ao criar conta você concorda com os{' '}
+            <ThemedText style={[styles.termsLink, { color: theme.primary }]}>
+              Termos de Uso
+            </ThemedText>{' '}
+            e a{' '}
+            <ThemedText style={[styles.termsLink, { color: theme.primary }]}>
+              Política de Privacidade
+            </ThemedText>
+            .
+          </ThemedText>
 
-              <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: inputBg, borderColor: inputBorderColor, color: theme.text },
-                ]}
-                placeholder="Email"
-                placeholderTextColor={theme.textMuted}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-                textContentType="emailAddress"
-                value={email}
-                onChangeText={setEmail}
-                editable={!isLoading}
-              />
-              <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: inputBg, borderColor: inputBorderColor, color: theme.text },
-                ]}
-                placeholder="Senha (mínimo 6 caracteres)"
-                placeholderTextColor={theme.textMuted}
-                secureTextEntry
-                autoComplete="new-password"
-                textContentType="newPassword"
-                value={password}
-                onChangeText={setPassword}
-                editable={!isLoading}
-              />
-              <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: inputBg, borderColor: inputBorderColor, color: theme.text },
-                ]}
-                placeholder="Confirmar senha"
-                placeholderTextColor={theme.textMuted}
-                secureTextEntry
-                autoComplete="new-password"
-                textContentType="newPassword"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                editable={!isLoading}
-              />
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.back()}
+            style={({ pressed }) => [styles.loginLink, { opacity: pressed ? 0.6 : 1 }]}
+          >
+            <ThemedText style={[styles.loginText, { color: theme.textSecondary }]}>
+              Já tem conta?{' '}
+              <ThemedText style={[styles.loginHighlight, { color: theme.primary }]}>
+                Entrar
+              </ThemedText>
+            </ThemedText>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Criar conta"
-                disabled={isLoading}
-                onPress={handleRegister}
-                style={({ pressed }) => [
-                  styles.primaryButton,
-                  Shadow.card,
-                  { backgroundColor: theme.primary, opacity: pressed || isLoading ? 0.75 : 1 },
-                ]}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color={theme.textOnPrimary} />
-                ) : (
-                  <ThemedText style={[styles.primaryButtonText, { color: theme.textOnPrimary }]}>
-                    Criar conta
-                  </ThemedText>
-                )}
-              </Pressable>
-
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => router.back()}
-                style={({ pressed }) => [styles.loginLink, { opacity: pressed ? 0.6 : 1 }]}
-              >
-                <ThemedText style={[styles.loginText, { color: theme.textSecondary }]}>
-                  Já tem conta?{' '}
-                  <ThemedText style={[styles.loginHighlight, { color: theme.primary }]}>
-                    Entrar
-                  </ThemedText>
-                </ThemedText>
-              </Pressable>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+      <SafeAreaView edges={['top']} style={styles.backWrap} pointerEvents="box-none">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          onPress={() => router.back()}
+          style={({ pressed }) => [
+            styles.backButton,
+            Shadow.card,
+            { backgroundColor: theme.surface, opacity: pressed ? 0.7 : 1 },
+          ]}
+        >
+          <Ionicons name="chevron-back" size={20} color={theme.text} />
+        </Pressable>
       </SafeAreaView>
     </ThemedView>
   );
@@ -197,61 +227,59 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  safeArea: {
+  hero: {
+    height: 220,
+  },
+  sheet: {
     flex: 1,
-    maxWidth: Layout.maxContentWidth,
-    width: '100%',
-    alignSelf: 'center',
+    marginTop: -Radius.xxl,
+    borderTopLeftRadius: Radius.xxl,
+    borderTopRightRadius: Radius.xxl,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: Layout.screenPadding,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.xxl,
-  },
-  header: {
-    paddingBottom: Spacing.xl,
-  },
-  backLabel: {
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
-  },
-  titleBlock: {
-    gap: Spacing.xs,
-    marginBottom: Spacing.xl,
+  sheetContent: {
+    padding: Spacing.xl,
+    gap: Spacing.md,
   },
   title: {
-    fontSize: FontSize.xxl,
+    fontSize: FontSize.xl,
+    lineHeight: 30,
     fontWeight: FontWeight.bold,
-    letterSpacing: -0.8,
-  },
-  subtitle: {
-    fontSize: FontSize.sm,
-    lineHeight: 22,
-  },
-  form: {
-    gap: Spacing.sm,
+    letterSpacing: -0.4,
   },
   error: {
     fontSize: FontSize.sm,
     textAlign: 'center',
   },
-  input: {
-    height: 52,
-    borderRadius: Radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: Spacing.lg,
-    fontSize: FontSize.md,
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginVertical: Spacing.xs,
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  dividerLabel: {
+    fontSize: FontSize.sm,
   },
   primaryButton: {
-    height: 52,
-    borderRadius: Radius.md,
+    height: 54,
+    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: Spacing.xs,
+    marginTop: Spacing.sm,
   },
   primaryButtonText: {
     fontSize: FontSize.md,
+    fontWeight: FontWeight.semibold,
+  },
+  terms: {
+    fontSize: FontSize.xs,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  termsLink: {
     fontWeight: FontWeight.semibold,
   },
   loginLink: {
@@ -263,5 +291,18 @@ const styles = StyleSheet.create({
   },
   loginHighlight: {
     fontWeight: FontWeight.semibold,
+  },
+  backWrap: {
+    position: 'absolute',
+    top: 0,
+    left: Spacing.lg,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: Spacing.sm,
   },
 });

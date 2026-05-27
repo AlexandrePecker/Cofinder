@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -30,25 +31,34 @@ export function Avatar({ uri, name, size = 32, onPress }: Props) {
       width: size,
       height: size,
       borderRadius: Radius.full,
-      backgroundColor: theme.primaryMuted,
     },
   ];
 
-  const content = uri ? (
-    <Image
-      source={{ uri }}
-      style={{ width: size, height: size, borderRadius: Radius.full }}
-      contentFit="cover"
-    />
-  ) : (
-    <ThemedText
-      style={[
-        styles.initials,
-        { fontSize: size * 0.38, color: theme.textOnPrimary, fontWeight: FontWeight.semibold },
-      ]}
-    >
-      {initials(name)}
-    </ThemedText>
+  const content = (
+    <>
+      <LinearGradient
+        colors={[theme.primarySoft, theme.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      {uri ? (
+        <Image
+          source={{ uri }}
+          style={{ width: size, height: size, borderRadius: Radius.full }}
+          contentFit="cover"
+        />
+      ) : (
+        <ThemedText
+          style={[
+            styles.initials,
+            { fontSize: size * 0.38, color: theme.textOnPrimary, fontWeight: FontWeight.semibold },
+          ]}
+        >
+          {initials(name)}
+        </ThemedText>
+      )}
+    </>
   );
 
   if (onPress) {

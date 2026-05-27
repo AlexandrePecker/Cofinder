@@ -24,7 +24,7 @@ import { useFavoriteCafes } from '@/features/cafes/use-favorite-cafes';
 import { useFavorites } from '@/features/cafes/use-favorites';
 import { useMyReviews } from '@/features/reviews/use-my-reviews';
 import { useTheme } from '@/hooks/use-theme';
-import { FontSize, FontWeight, Radius, Spacing } from '@/theme';
+import { FontSize, FontWeight, Radius, Shadow, Spacing } from '@/theme';
 
 function ProfileSkeleton() {
   const theme = useTheme();
@@ -186,7 +186,7 @@ function StatsRowSkeleton() {
       {[0, 1, 2].map((i) => (
         <Animated.View
           key={i}
-          style={[styles.statCard, { backgroundColor: theme.surfaceAlt, opacity }]}
+          style={[styles.statCard, Shadow.card, { backgroundColor: theme.surface, opacity }]}
         />
       ))}
     </View>
@@ -216,7 +216,10 @@ function StatsRow() {
   return (
     <View style={styles.statsRow}>
       {stats.map((stat) => (
-        <View key={stat.label} style={[styles.statCard, { backgroundColor: theme.surfaceAlt }]}>
+        <View
+          key={stat.label}
+          style={[styles.statCard, Shadow.card, { backgroundColor: theme.surface }]}
+        >
           <ThemedText style={styles.statValue}>{stat.value}</ThemedText>
           <ThemedText style={[styles.statLabel, { color: theme.textMuted }]}>
             {stat.label}
@@ -275,7 +278,8 @@ function FavoriteCafesSection() {
           }
           style={({ pressed }) => [
             styles.reviewedItem,
-            { backgroundColor: theme.surfaceAlt, opacity: pressed ? 0.7 : 1 },
+            Shadow.card,
+            { backgroundColor: theme.surface, opacity: pressed ? 0.7 : 1 },
           ]}
         >
           <View style={styles.reviewedRow}>
@@ -348,7 +352,8 @@ function ReviewedCafesSection() {
           }}
           style={({ pressed }) => [
             styles.reviewedItem,
-            { backgroundColor: theme.surfaceAlt, opacity: pressed ? 0.7 : 1 },
+            Shadow.card,
+            { backgroundColor: theme.surface, opacity: pressed ? 0.7 : 1 },
           ]}
         >
           <View style={styles.reviewedRow}>
@@ -411,10 +416,7 @@ export default function ProfileScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView
-        edges={['top']}
-        style={[styles.header, { borderBottomColor: theme.border, backgroundColor: theme.surface }]}
-      >
+      <SafeAreaView edges={['top']} style={styles.header}>
         <ThemedText style={styles.title}>Perfil</ThemedText>
       </SafeAreaView>
 
@@ -475,10 +477,17 @@ export default function ProfileScreen() {
           )}
         </ScrollView>
 
-        <View style={[styles.footer, { borderTopColor: theme.border }]}>
+        <View style={styles.footer}>
           <Pressable
             onPress={handleSignOut}
-            style={({ pressed }) => [styles.signOutButton, { opacity: pressed ? 0.6 : 1 }]}
+            style={({ pressed }) => [
+              styles.signOutButton,
+              {
+                backgroundColor: theme.surface,
+                borderColor: theme.danger,
+                opacity: pressed ? 0.6 : 1,
+              },
+            ]}
           >
             <ThemedText style={[styles.signOutLabel, { color: theme.danger }]}>Sair</ThemedText>
           </Pressable>
@@ -496,14 +505,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.sm,
   },
   title: {
-    fontSize: FontSize.lg,
+    fontSize: 32,
+    lineHeight: 40,
     fontWeight: FontWeight.bold,
-    letterSpacing: -0.3,
+    letterSpacing: -0.8,
   },
   content: {
     padding: Spacing.lg,
@@ -573,18 +582,20 @@ const styles = StyleSheet.create({
     fontWeight: FontWeight.semibold,
   },
   footer: {
-    borderTopWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
   },
   signOutButton: {
-    height: 52,
+    height: 50,
+    borderRadius: Radius.full,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   signOutLabel: {
     fontSize: FontSize.md,
-    fontWeight: FontWeight.medium,
+    fontWeight: FontWeight.semibold,
   },
   statsRow: {
     flexDirection: 'row',
@@ -592,8 +603,8 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.md,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.lg,
     alignItems: 'center',
     gap: Spacing.xs,
   },

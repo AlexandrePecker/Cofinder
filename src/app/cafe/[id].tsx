@@ -1,10 +1,13 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   TextInput,
   View,
@@ -12,6 +15,7 @@ import {
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CoffeeHero } from '@/components/coffee-hero';
 import { useSnackbar } from '@/components/snackbar-provider';
 import { StarPicker } from '@/components/star-picker';
 import { ThemedText } from '@/components/themed-text';
@@ -45,6 +49,36 @@ function averageRating(ratings: number[]): number {
   return ratings.reduce((a, b) => a + b, 0) / ratings.length;
 }
 
+function QuickAction({
+  icon,
+  label,
+  onPress,
+  active,
+}: {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  onPress: () => void;
+  active?: boolean;
+}) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.quickAction,
+        { backgroundColor: theme.surfaceAlt, opacity: pressed ? 0.7 : 1 },
+      ]}
+    >
+      <Ionicons name={icon} size={20} color={theme.primary} />
+      <ThemedText style={[styles.quickActionLabel, { color: active ? theme.primary : theme.text }]}>
+        {label}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
 export default function CafeDetailScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -75,6 +109,7 @@ export default function CafeDetailScreen() {
   const isFavorited = favoriteIds?.has(params.id) ?? false;
   const lat = parseFloat(params.lat);
   const lng = parseFloat(params.lng);
+  const hasCoords = !isNaN(lat) && !isNaN(lng);
   const rating = params.rating ? parseFloat(params.rating) : null;
   const ratingsTotal = params.user_ratings_total ? parseInt(params.user_ratings_total, 10) : null;
   const priceLevel = params.price_level !== '' ? parseInt(params.price_level, 10) : null;
@@ -95,6 +130,30 @@ export default function CafeDetailScreen() {
     setDraftRating(userReview?.rating ?? 0);
     setDraftComment(userReview?.comment ?? '');
     setShowReviewForm(true);
+  }
+
+  function handleToggleFavorite() {
+    toggleFavorite(
+      { placeId: params.id, isFavorited },
+      {
+        onSuccess: () =>
+          showSnackbar(
+            isFavorited ? 'Removido dos favoritos' : 'Adicionado aos favoritos',
+            'success',
+          ),
+        onError: () => showSnackbar('Erro ao atualizar favorito', 'error'),
+      },
+    );
+  }
+
+  function handleRoutes() {
+    if (!hasCoords) return;
+    Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`);
+  }
+
+  function handleShare() {
+    const where = hasCoords ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : '';
+    Share.share({ message: `${params.name}${where ? `\n${where}` : ''}` });
   }
 
   function handleSaveReview() {
@@ -122,14 +181,12 @@ export default function CafeDetailScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.heroContainer}>
           {photoSource ? (
             <Image source={photoSource} style={styles.photo} contentFit="cover" transition={300} />
           ) : (
-            <View
-              style={[styles.photo, styles.photoPlaceholder, { backgroundColor: theme.surfaceAlt }]}
-            />
+            <CoffeeHero variant="pour" style={styles.photo} />
           )}
           <SafeAreaView edges={['top']} style={styles.heroOverlay} pointerEvents="box-none">
             <View style={styles.headerRow}>
@@ -142,7 +199,7 @@ export default function CafeDetailScreen() {
                   { backgroundColor: theme.surface, opacity: pressed ? 0.7 : 1 },
                 ]}
               >
-                <ThemedText style={[styles.backLabel, { color: theme.primary }]}>←</ThemedText>
+                <Ionicons name="chevron-back" size={20} color={theme.text} />
               </Pressable>
 
               {isTogglingFavorite ? (
@@ -155,49 +212,49 @@ export default function CafeDetailScreen() {
                   accessibilityLabel={
                     isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
                   }
-                  onPress={() =>
-                    toggleFavorite(
-                      { placeId: params.id, isFavorited },
-                      {
-                        onSuccess: () =>
-                          showSnackbar(
-                            isFavorited ? 'Removido dos favoritos' : 'Adicionado aos favoritos',
-                            'success',
-                          ),
-                        onError: () => showSnackbar('Erro ao atualizar favorito', 'error'),
-                      },
-                    )
-                  }
+                  onPress={handleToggleFavorite}
                   style={({ pressed }) => [
                     styles.overlayButton,
                     { backgroundColor: theme.surface, opacity: pressed ? 0.7 : 1 },
                   ]}
                 >
-                  <ThemedText style={[styles.favoriteIcon, { color: theme.rating }]}>
-                    {isFavorited ? '♥' : '♡'}
-                  </ThemedText>
+                  <Ionicons
+                    name={isFavorited ? 'heart' : 'heart-outline'}
+                    size={20}
+                    color={theme.primary}
+                  />
                 </Pressable>
               )}
             </View>
           </SafeAreaView>
         </View>
 
-        {/* Cafe info */}
-        <View style={[styles.card, Shadow.card, { backgroundColor: theme.surface }]}>
+        <View style={[styles.sheet, { backgroundColor: theme.surface }]}>
           <ThemedText style={styles.name}>{params.name}</ThemedText>
 
-          {rating !== null ? (
-            <View style={styles.ratingRow}>
-              <ThemedText style={[styles.rating, { color: theme.rating }]}>
-                ★ {rating.toFixed(1)}
-              </ThemedText>
-              {ratingsTotal ? (
-                <ThemedText style={[styles.ratingCount, { color: theme.textMuted }]}>
-                  {ratingsTotal.toLocaleString()} avaliações no Google
+          <View style={styles.metaRow}>
+            {rating !== null ? (
+              <View style={styles.ratingRow}>
+                <Ionicons name="star" size={16} color={theme.rating} />
+                <ThemedText style={[styles.rating, { color: theme.rating }]}>
+                  {rating.toFixed(1)}
                 </ThemedText>
-              ) : null}
-            </View>
-          ) : null}
+              </View>
+            ) : null}
+            {ratingsTotal ? (
+              <ThemedText style={[styles.metaText, { color: theme.textMuted }]}>
+                {ratingsTotal.toLocaleString()} avaliações no Google
+              </ThemedText>
+            ) : null}
+            {priceLevel !== null && PRICE_LABEL[priceLevel] ? (
+              <>
+                <ThemedText style={[styles.metaText, { color: theme.textMuted }]}>·</ThemedText>
+                <ThemedText style={[styles.price, { color: theme.textSecondary }]}>
+                  {PRICE_LABEL[priceLevel]}
+                </ThemedText>
+              </>
+            ) : null}
+          </View>
 
           {params.address ? (
             <ThemedText style={[styles.address, { color: theme.textSecondary }]}>
@@ -205,13 +262,20 @@ export default function CafeDetailScreen() {
             </ThemedText>
           ) : null}
 
-          {priceLevel !== null && PRICE_LABEL[priceLevel] ? (
-            <ThemedText style={[styles.price, { color: theme.textMuted }]}>
-              {PRICE_LABEL[priceLevel]}
-            </ThemedText>
-          ) : null}
+          <View style={styles.quickActions}>
+            {hasCoords ? (
+              <QuickAction icon="navigate-outline" label="Rotas" onPress={handleRoutes} />
+            ) : null}
+            <QuickAction icon="share-outline" label="Compartilhar" onPress={handleShare} />
+            <QuickAction
+              icon={isFavorited ? 'bookmark' : 'bookmark-outline'}
+              label="Salvar"
+              active={isFavorited}
+              onPress={handleToggleFavorite}
+            />
+          </View>
 
-          {!isNaN(lat) && !isNaN(lng) ? (
+          {hasCoords ? (
             <MapView
               style={styles.miniMap}
               scrollEnabled={false}
@@ -228,10 +292,7 @@ export default function CafeDetailScreen() {
               <Marker coordinate={{ latitude: lat, longitude: lng }} title={params.name} />
             </MapView>
           ) : null}
-        </View>
 
-        {/* User reviews section */}
-        <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <ThemedText style={styles.sectionTitle}>Avaliações da comunidade</ThemedText>
             {reviews.length > 0 ? (
@@ -241,27 +302,8 @@ export default function CafeDetailScreen() {
             ) : null}
           </View>
 
-          <Pressable
-            accessibilityRole="button"
-            onPress={openReviewForm}
-            style={({ pressed }) => [
-              styles.rateButton,
-              Shadow.card,
-              { backgroundColor: theme.primary, opacity: pressed ? 0.8 : 1 },
-            ]}
-          >
-            <ThemedText style={[styles.rateButtonText, { color: theme.textOnPrimary }]}>
-              {userReview ? 'Editar minha avaliação' : 'Avaliar esta cafeteria'}
-            </ThemedText>
-          </Pressable>
-
           {showReviewForm ? (
-            <View
-              style={[
-                styles.reviewForm,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-              ]}
-            >
+            <View style={[styles.reviewForm, { backgroundColor: theme.surfaceAlt }]}>
               <ThemedText style={styles.formLabel}>Sua nota</ThemedText>
               <StarPicker value={draftRating} onChange={setDraftRating} size={36} />
 
@@ -272,7 +314,7 @@ export default function CafeDetailScreen() {
                 style={[
                   styles.commentInput,
                   {
-                    backgroundColor: theme.background,
+                    backgroundColor: theme.surface,
                     borderColor: theme.border,
                     color: theme.text,
                   },
@@ -327,24 +369,21 @@ export default function CafeDetailScreen() {
             reviews.map((review) => (
               <View
                 key={review.id}
-                style={[
-                  styles.reviewItem,
-                  { backgroundColor: theme.surface, borderColor: theme.border },
-                ]}
+                style={[styles.reviewItem, { backgroundColor: theme.surfaceAlt }]}
               >
                 <View style={styles.reviewHeader}>
+                  <ThemedText style={[styles.reviewAuthor, { color: theme.text }]}>
+                    {review.profiles?.display_name ?? 'Usuário'}
+                  </ThemedText>
                   <ThemedText style={[styles.reviewRating, { color: theme.rating }]}>
                     {'★'.repeat(review.rating)}
                     <ThemedText style={{ color: theme.border }}>
                       {'★'.repeat(5 - review.rating)}
                     </ThemedText>
                   </ThemedText>
-                  <ThemedText style={[styles.reviewDate, { color: theme.textMuted }]}>
-                    {formatDate(review.created_at)}
-                  </ThemedText>
                 </View>
-                <ThemedText style={[styles.reviewAuthor, { color: theme.textMuted }]}>
-                  {review.profiles?.display_name ?? 'Usuário'}
+                <ThemedText style={[styles.reviewDate, { color: theme.textMuted }]}>
+                  {formatDate(review.created_at)}
                 </ThemedText>
                 {review.comment ? (
                   <ThemedText style={[styles.reviewComment, { color: theme.textSecondary }]}>
@@ -354,6 +393,20 @@ export default function CafeDetailScreen() {
               </View>
             ))
           )}
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={openReviewForm}
+            style={({ pressed }) => [
+              styles.rateButton,
+              Shadow.card,
+              { backgroundColor: theme.primary, opacity: pressed ? 0.8 : 1 },
+            ]}
+          >
+            <ThemedText style={[styles.rateButtonText, { color: theme.textOnPrimary }]}>
+              {userReview ? 'Editar minha avaliação' : 'Avaliar esta cafeteria'}
+            </ThemedText>
+          </Pressable>
         </View>
       </ScrollView>
     </ThemedView>
@@ -364,15 +417,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: Spacing.xxxl,
+  },
   heroContainer: {
     width: '100%',
-    height: 280,
+    height: 300,
   },
   photo: {
     width: '100%',
-    height: 280,
+    height: 300,
   },
-  photoPlaceholder: {},
   heroOverlay: {
     position: 'absolute',
     top: 0,
@@ -387,34 +442,19 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
   },
   overlayButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadow.card,
   },
-  backLabel: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
-  },
-  favoriteIcon: {
-    fontSize: FontSize.lg,
-  },
-  scrollContent: {
-    paddingBottom: Spacing.xxxl,
-  },
-  miniMap: {
-    height: 150,
-    borderRadius: Radius.md,
-    overflow: 'hidden',
-    marginTop: Spacing.xs,
-  },
-  card: {
-    margin: Spacing.lg,
-    borderRadius: Radius.lg,
-    padding: Spacing.lg,
-    gap: Spacing.sm,
+  sheet: {
+    marginTop: -Radius.xxl,
+    borderTopLeftRadius: Radius.xxl,
+    borderTopRightRadius: Radius.xxl,
+    padding: Spacing.xl,
+    gap: Spacing.md,
   },
   name: {
     fontSize: FontSize.xxl,
@@ -422,48 +462,74 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     lineHeight: 34,
   },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.xs,
   },
   rating: {
-    fontSize: FontSize.lg,
-    fontWeight: FontWeight.semibold,
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.bold,
   },
-  ratingCount: {
+  metaText: {
     fontSize: FontSize.sm,
+  },
+  price: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
   },
   address: {
     fontSize: FontSize.sm,
     lineHeight: 20,
   },
-  price: {
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
+  quickActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: Spacing.xs,
   },
-  section: {
-    paddingHorizontal: Spacing.lg,
-    gap: Spacing.md,
+  quickAction: {
+    flex: 1,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  quickActionLabel: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.semibold,
+  },
+  miniMap: {
+    height: 150,
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
+    marginTop: Spacing.xs,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: Spacing.sm,
   },
   sectionTitle: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
   },
   avgRating: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
   },
   rateButton: {
-    height: 48,
-    borderRadius: Radius.md,
+    height: 52,
+    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: Spacing.sm,
   },
   rateButtonText: {
     fontSize: FontSize.md,
@@ -471,7 +537,6 @@ const styles = StyleSheet.create({
   },
   reviewForm: {
     borderRadius: Radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
     padding: Spacing.lg,
     gap: Spacing.sm,
   },
@@ -495,7 +560,7 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     height: 44,
-    borderRadius: Radius.md,
+    borderRadius: Radius.full,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
@@ -507,7 +572,7 @@ const styles = StyleSheet.create({
   saveButton: {
     flex: 1,
     height: 44,
-    borderRadius: Radius.md,
+    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -522,8 +587,7 @@ const styles = StyleSheet.create({
   },
   reviewItem: {
     borderRadius: Radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: Spacing.md,
+    padding: Spacing.lg,
     gap: Spacing.xs,
   },
   reviewHeader: {
@@ -532,15 +596,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   reviewRating: {
-    fontSize: FontSize.md,
-    letterSpacing: 2,
+    fontSize: FontSize.sm,
+    letterSpacing: 1,
+  },
+  reviewAuthor: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
   },
   reviewDate: {
     fontSize: FontSize.xs,
-  },
-  reviewAuthor: {
-    fontSize: FontSize.xs,
-    fontWeight: FontWeight.medium,
   },
   reviewComment: {
     fontSize: FontSize.sm,

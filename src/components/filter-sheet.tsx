@@ -177,8 +177,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   sheet: {
-    borderTopLeftRadius: Radius.xl,
-    borderTopRightRadius: Radius.xl,
+    borderTopLeftRadius: Radius.xxl,
+    borderTopRightRadius: Radius.xxl,
     maxHeight: '80%',
   },
   handle: {
@@ -243,8 +243,8 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   applyButton: {
-    height: 52,
-    borderRadius: Radius.lg,
+    height: 54,
+    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -22,49 +24,71 @@ export const CafeCard = memo(function CafeCard({ cafe, onPress }: Props) {
       style={({ pressed }) => [
         styles.card,
         Shadow.card,
-        {
-          backgroundColor: theme.surface,
-          borderColor: theme.border,
-          opacity: pressed ? 0.9 : 1,
-        },
+        { backgroundColor: theme.surface, opacity: pressed ? 0.9 : 1 },
       ]}
     >
-      <ThemedText style={styles.name} numberOfLines={1}>
-        {cafe.name}
-      </ThemedText>
-      {cafe.address ? (
-        <ThemedText style={[styles.address, { color: theme.textMuted }]} numberOfLines={1}>
-          {cafe.address}
+      <LinearGradient
+        colors={[theme.primarySoft, theme.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.thumb}
+      >
+        <Ionicons name="cafe" size={28} color={theme.textOnPrimary} />
+      </LinearGradient>
+
+      <View style={styles.body}>
+        <ThemedText style={styles.name} numberOfLines={1}>
+          {cafe.name}
         </ThemedText>
-      ) : null}
-      {cafe.rating !== null ? (
-        <View style={styles.ratingRow}>
-          <ThemedText style={[styles.rating, { color: theme.rating }]}>
-            ★ {cafe.rating.toFixed(1)}
+        {cafe.address ? (
+          <ThemedText style={[styles.address, { color: theme.textMuted }]} numberOfLines={1}>
+            {cafe.address}
           </ThemedText>
-          {cafe.user_ratings_total ? (
-            <ThemedText style={[styles.ratingCount, { color: theme.textMuted }]}>
-              ({cafe.user_ratings_total.toLocaleString()})
+        ) : null}
+        {cafe.rating !== null ? (
+          <View style={styles.ratingRow}>
+            <Ionicons name="star" size={13} color={theme.rating} />
+            <ThemedText style={[styles.rating, { color: theme.rating }]}>
+              {cafe.rating.toFixed(1)}
             </ThemedText>
-          ) : null}
-        </View>
-      ) : null}
+            {cafe.user_ratings_total ? (
+              <ThemedText style={[styles.ratingCount, { color: theme.textMuted }]}>
+                ({cafe.user_ratings_total.toLocaleString()})
+              </ThemedText>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
     </Pressable>
   );
 });
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: Radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
     marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  thumb: {
+    width: 58,
+    height: 58,
+    borderRadius: Radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  body: {
+    flex: 1,
+    minWidth: 0,
     gap: Spacing.xs,
   },
   name: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+    letterSpacing: -0.2,
   },
   address: {
     fontSize: FontSize.sm,
@@ -77,7 +101,7 @@ const styles = StyleSheet.create({
   },
   rating: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
+    fontWeight: FontWeight.semibold,
   },
   ratingCount: {
     fontSize: FontSize.xs,

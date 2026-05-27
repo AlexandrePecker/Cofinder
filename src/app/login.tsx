@@ -1,39 +1,25 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 
+import { CoffeeHero } from '@/components/coffee-hero';
+import { FormField } from '@/components/form-field';
+import { SocialButton } from '@/components/social-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/features/auth/auth-context';
 import { useTheme } from '@/hooks/use-theme';
-import { FontSize, FontWeight, Layout, Radius, Shadow, Spacing } from '@/theme';
-
-function BrandMark({ color, bg }: { color: string; bg: string }) {
-  return (
-    <View style={[styles.mark, { backgroundColor: bg }]}>
-      <View style={[styles.markRing, { borderColor: color }]}>
-        <View style={[styles.markDot, { backgroundColor: color }]} />
-      </View>
-    </View>
-  );
-}
-
-function GoogleIcon() {
-  return (
-    <View style={styles.googleBadge}>
-      <ThemedText style={styles.googleLetter}>G</ThemedText>
-    </View>
-  );
-}
+import { FontSize, FontWeight, Radius, Shadow, Spacing } from '@/theme';
 
 export default function LoginScreen() {
   const theme = useTheme();
@@ -93,125 +79,114 @@ export default function LoginScreen() {
     }
   }
 
-  const inputBorderColor = theme.border;
-  const inputBg = theme.surface;
-
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView type="primarySoft" style={styles.container}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-          <View style={styles.hero}>
-            <BrandMark color={theme.textOnPrimary} bg={theme.primary} />
-            <View style={styles.heroText}>
-              <ThemedText style={styles.title}>Cofinder</ThemedText>
-              <ThemedText style={[styles.tagline, { color: theme.textMuted }]}>
-                {'Avalie cafeterias e\ndescubra as favoritas da comunidade'}
-              </ThemedText>
-            </View>
+        <View style={styles.hero}>
+          <CoffeeHero variant="pour" style={StyleSheet.absoluteFill} />
+        </View>
+
+        <ScrollView
+          style={[styles.sheet, { backgroundColor: theme.surface }]}
+          contentContainerStyle={styles.sheetContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <ThemedText style={styles.title}>Acessar sua conta</ThemedText>
+
+          {error ? (
+            <ThemedText style={[styles.error, { color: theme.danger }]}>{error}</ThemedText>
+          ) : null}
+
+          <SocialButton
+            kind="google"
+            label="Continuar com Google"
+            onPress={handleGoogleSignIn}
+            disabled={isSigningIn}
+          />
+
+          <View style={styles.dividerRow}>
+            <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+            <ThemedText style={[styles.dividerLabel, { color: theme.textMuted }]}>ou</ThemedText>
+            <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
           </View>
 
-          <View style={styles.form}>
-            {error ? (
-              <ThemedText style={[styles.error, { color: theme.danger }]}>{error}</ThemedText>
-            ) : null}
+          <FormField
+            label="E-mail"
+            placeholder="seu@email.com"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            autoComplete="email"
+            textContentType="emailAddress"
+            value={email}
+            onChangeText={setEmail}
+            editable={!isSigningIn}
+          />
+          <FormField
+            label="Senha"
+            placeholder="••••••••"
+            password
+            autoComplete="password"
+            textContentType="password"
+            value={password}
+            onChangeText={setPassword}
+            editable={!isSigningIn}
+          />
 
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: inputBg, borderColor: inputBorderColor, color: theme.text },
-              ]}
-              placeholder="Email"
-              placeholderTextColor={theme.textMuted}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-              textContentType="emailAddress"
-              value={email}
-              onChangeText={setEmail}
-              editable={!isSigningIn}
-            />
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: inputBg, borderColor: inputBorderColor, color: theme.text },
-              ]}
-              placeholder="Senha"
-              placeholderTextColor={theme.textMuted}
-              secureTextEntry
-              autoComplete="password"
-              textContentType="password"
-              value={password}
-              onChangeText={setPassword}
-              editable={!isSigningIn}
-            />
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Entrar com email"
-              disabled={isSigningIn}
-              onPress={handleEmailSignIn}
-              style={({ pressed }) => [
-                styles.primaryButton,
-                Shadow.card,
-                { backgroundColor: theme.primary, opacity: pressed || isSigningIn ? 0.75 : 1 },
-              ]}
-            >
-              {isSigningIn ? (
-                <ActivityIndicator color={theme.textOnPrimary} />
-              ) : (
-                <ThemedText style={[styles.primaryButtonText, { color: theme.textOnPrimary }]}>
-                  Entrar
-                </ThemedText>
-              )}
-            </Pressable>
-
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => router.push('/register')}
-              style={({ pressed }) => [styles.registerLink, { opacity: pressed ? 0.6 : 1 }]}
-            >
-              <ThemedText style={[styles.registerText, { color: theme.textSecondary }]}>
-                Não tem conta?{' '}
-                <ThemedText style={[styles.registerHighlight, { color: theme.primary }]}>
-                  Cadastre-se
-                </ThemedText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Entrar com email"
+            disabled={isSigningIn}
+            onPress={handleEmailSignIn}
+            style={({ pressed }) => [
+              styles.primaryButton,
+              Shadow.card,
+              { backgroundColor: theme.primary, opacity: pressed || isSigningIn ? 0.75 : 1 },
+            ]}
+          >
+            {isSigningIn ? (
+              <ActivityIndicator color={theme.textOnPrimary} />
+            ) : (
+              <ThemedText style={[styles.primaryButtonText, { color: theme.textOnPrimary }]}>
+                Entrar
               </ThemedText>
-            </Pressable>
+            )}
+          </Pressable>
 
-            <View style={styles.dividerRow}>
-              <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-              <ThemedText style={[styles.dividerLabel, { color: theme.textMuted }]}>ou</ThemedText>
-              <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-            </View>
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Entrar com Google"
-              disabled={isSigningIn}
-              onPress={handleGoogleSignIn}
-              style={({ pressed }) => [
-                styles.googleButton,
-                Shadow.card,
-                {
-                  backgroundColor: theme.surface,
-                  borderColor: theme.border,
-                  opacity: pressed || isSigningIn ? 0.75 : 1,
-                },
-              ]}
-            >
-              <View style={styles.buttonContent}>
-                <GoogleIcon />
-                <ThemedText style={[styles.buttonText, { color: theme.text }]}>
-                  Continuar com Google
-                </ThemedText>
-              </View>
-            </Pressable>
-          </View>
-        </SafeAreaView>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push('/register')}
+            style={({ pressed }) => [styles.registerLink, { opacity: pressed ? 0.6 : 1 }]}
+          >
+            <ThemedText style={[styles.registerText, { color: theme.textSecondary }]}>
+              Não tem conta?{' '}
+              <ThemedText style={[styles.registerHighlight, { color: theme.primary }]}>
+                Cadastre-se
+              </ThemedText>
+            </ThemedText>
+          </Pressable>
+        </ScrollView>
       </KeyboardAvoidingView>
+
+      <SafeAreaView edges={['top']} style={styles.backWrap} pointerEvents="box-none">
+        {router.canGoBack() ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+            onPress={() => router.back()}
+            style={({ pressed }) => [
+              styles.backButton,
+              Shadow.card,
+              { backgroundColor: theme.surface, opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <Ionicons name="chevron-back" size={20} color={theme.text} />
+          </Pressable>
+        ) : null}
+      </SafeAreaView>
     </ThemedView>
   );
 }
@@ -223,77 +198,48 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Layout.screenPadding,
-    paddingVertical: Spacing.xxl,
-    maxWidth: Layout.maxContentWidth,
-    width: '100%',
-    alignSelf: 'center',
-  },
   hero: {
+    height: 300,
+  },
+  sheet: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.xl,
-    paddingBottom: Spacing.xl,
+    marginTop: -Radius.xxl,
+    borderTopLeftRadius: Radius.xxl,
+    borderTopRightRadius: Radius.xxl,
   },
-  heroText: {
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  mark: {
-    width: 88,
-    height: 88,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  markRing: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 2.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  markDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+  sheetContent: {
+    padding: Spacing.xl,
+    gap: Spacing.md,
   },
   title: {
-    fontSize: FontSize.xxl,
-    lineHeight: Math.round(FontSize.xxl * 1.2),
+    fontSize: FontSize.xl,
+    lineHeight: 30,
     fontWeight: FontWeight.bold,
-    letterSpacing: -0.8,
-  },
-  tagline: {
-    fontSize: FontSize.sm,
-    lineHeight: 22,
-    letterSpacing: 0.1,
-    textAlign: 'center',
-  },
-  form: {
-    gap: Spacing.sm,
+    letterSpacing: -0.4,
   },
   error: {
     fontSize: FontSize.sm,
     textAlign: 'center',
   },
-  input: {
-    height: 52,
-    borderRadius: Radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: Spacing.lg,
-    fontSize: FontSize.md,
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginVertical: Spacing.xs,
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  dividerLabel: {
+    fontSize: FontSize.sm,
   },
   primaryButton: {
-    height: 52,
-    borderRadius: Radius.md,
+    height: 54,
+    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: Spacing.xs,
+    marginTop: Spacing.sm,
   },
   primaryButtonText: {
     fontSize: FontSize.md,
@@ -309,48 +255,17 @@ const styles = StyleSheet.create({
   registerHighlight: {
     fontWeight: FontWeight.semibold,
   },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginVertical: Spacing.xs,
+  backWrap: {
+    position: 'absolute',
+    top: 0,
+    left: Spacing.lg,
   },
-  dividerLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-  },
-  dividerLabel: {
-    fontSize: FontSize.xs,
-  },
-  googleButton: {
-    height: 52,
-    borderRadius: Radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.lg,
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  googleBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#4285F4',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  googleLetter: {
-    fontSize: 12,
-    lineHeight: 15,
-    fontWeight: FontWeight.bold,
-    color: '#FFFFFF',
-  },
-  buttonText: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
+    marginTop: Spacing.sm,
   },
 });

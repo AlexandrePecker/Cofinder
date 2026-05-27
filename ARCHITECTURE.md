@@ -1,126 +1,125 @@
-# Cofinder — Architecture
+# Cofinder — Arquitetura
 
-Mobile app to discover well-rated cafes near the user's location.
-Portfolio / personal project. No AI agent.
+App mobile para descobrir cafés bem avaliados próximos ao usuário.
+Projeto de portfólio / pessoal. Sem agente de IA.
 
-## Stack and why
+## Stack e justificativas
 
-| Layer            | Choice                                               | Why this one                                                                                                                                                |
+| Camada           | Escolha                                              | Por quê                                                                                                                                                     |
 | ---------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mobile runtime   | **Expo SDK 56 + React Native + TypeScript (strict)** | One codebase for iOS + Android; geolocation, maps and auth are all first-class. Strict TS catches errors before they ship.                                  |
-| Navigation       | **Expo Router** (file-based)                         | Type-safe routes, deep linking out of the box (needed for the OAuth callback).                                                                              |
-| Auth + database  | **Supabase** (Postgres + Auth + RLS)                 | Managed Google OAuth, Postgres with Row Level Security, generous free tier. No server to run or patch.                                                      |
-| Cafe data        | **Google Places API (New)**                          | Best ratings/reviews/photos coverage — the core of "well-rated". Paid, so it is **cached** (see Cost).                                                      |
-| Cafe-data access | **Supabase Edge Function** (Deno)                    | Keeps the Places API key server-side; the client never sees it. Also where caching lives.                                                                   |
-| Server state     | **TanStack Query**                                   | Client-side caching, retries, offline-awareness for cafe lists and user data.                                                                               |
-| Maps             | **react-native-maps**                                | Mature RN map component (Google provider). Native module → requires a dev build.                                                                            |
-| Styling          | **StyleSheet + design tokens**                       | No Tailwind/NativeWind. Tokens centralize colors/spacing/type; predictable and dependency-free.                                                             |
-| Session storage  | **AsyncStorage**                                     | Supabase's documented Expo pattern; reliable for session payloads. Upgrade path: an encrypted "LargeSecureStore" adapter if at-rest encryption is required. |
+| Runtime mobile   | **Expo SDK 56 + React Native + TypeScript (strict)** | Uma base de código para iOS + Android; geolocalização, mapas e auth são nativos. TypeScript strict captura erros antes de entrar em produção.               |
+| Navegação        | **Expo Router** (file-based)                         | Rotas type-safe, deep linking nativo (necessário para o callback OAuth).                                                                                    |
+| Auth + banco     | **Supabase** (Postgres + Auth + RLS)                 | Google OAuth gerenciado, Postgres com Row Level Security, tier gratuito generoso. Sem servidor para manter.                                                 |
+| Dados de cafés   | **Google Places API (New)**                          | Melhor cobertura de avaliações/fotos — o núcleo do "bem avaliado". Pago, portanto **cacheado** (ver Custo).                                                 |
+| Acesso aos dados | **Supabase Edge Function** (Deno)                    | Mantém a chave da Places API no servidor; o cliente nunca a vê. É onde o cache vive.                                                                        |
+| Estado servidor  | **TanStack Query**                                   | Cache client-side, retentativas, awareness offline para listas de cafés e dados do usuário.                                                                 |
+| Mapas            | **react-native-maps**                                | Componente de mapa RN maduro (provider Google). Módulo nativo → exige dev build.                                                                            |
+| Estilização      | **StyleSheet + design tokens**                       | Sem Tailwind/NativeWind. Tokens centralizam cores/espaçamento/tipografia; previsível e sem dependências extras.                                             |
+| Sessão           | **AsyncStorage**                                     | Padrão documentado do Supabase para Expo; confiável para payloads de sessão. Caminho de upgrade: adapter "LargeSecureStore" se criptografia em repouso for necessária. |
 
-Decision rule: every dependency must justify itself. We avoided extra OAuth/styling
-libraries by using the OAuth web flow (expo-web-browser + expo-linking) and StyleSheet.
+Regra de decisão: toda dependência precisa se justificar. Evitamos bibliotecas extras de OAuth/estilização usando o fluxo web OAuth (expo-web-browser + expo-linking) e StyleSheet.
 
-## How to run
+## Como rodar
 
 ```bash
 npm install
-cp .env.example .env          # fill EXPO_PUBLIC_SUPABASE_URL + ANON_KEY
-npm start                     # Expo dev server
+cp .env.example .env          # preencher EXPO_PUBLIC_SUPABASE_URL + ANON_KEY
+npm start                     # servidor Expo
 npm run lint                  # ESLint (expo + prettier)
 npm run typecheck             # tsc --noEmit
 npm run format                # prettier --write
-bash scripts/install-hooks.sh # install the pre-commit RLS audit (run once)
+bash scripts/install-hooks.sh # instalar o hook de auditoria RLS no pre-commit (rodar uma vez)
 ```
 
-Local backend (requires Docker running):
+Backend local (requer Docker rodando):
 
 ```bash
 supabase start                # Postgres + Auth + Studio + Edge runtime
-supabase db reset             # apply migrations + seed
-supabase functions serve      # run Edge Functions locally
+supabase db reset             # aplica migrations + seed
+supabase functions serve      # roda Edge Functions localmente
 ```
 
-> Maps and geolocation are native modules — they need an Expo **dev build**
-> (`npx expo prebuild` + native run, or EAS dev build), not Expo Go.
+> Mapas e geolocalização são módulos nativos — precisam de um **dev build** do Expo
+> (`npx expo prebuild` + run nativo, ou EAS dev build), não funcionam no Expo Go.
 
-## Ports (local Supabase)
+## Portas (Supabase local)
 
-| Service                        | Port  |
+| Serviço                        | Porta |
 | ------------------------------ | ----- |
 | API (PostgREST/Auth/Functions) | 54321 |
 | Postgres                       | 54322 |
 | Studio                         | 54323 |
-| Inbucket (email testing)       | 54324 |
+| Inbucket (testes de e-mail)    | 54324 |
 
-## Folder structure
+## Estrutura de pastas
 
 ```
 src/
   app/
-    (tabs)/       Home, Favorites, Profile tabs
-    cafe/[id].tsx Cafe detail — hero photo, mini-map, reviews
-    onboarding.tsx  3-slide first-run flow (AsyncStorage flag)
-    login.tsx     Email/senha + Google OAuth
+    (tabs)/       Tabs Home, Favoritos, Perfil
+    cafe/[id].tsx Detalhe do café — foto principal, mini-mapa, avaliações
+    onboarding.tsx  Fluxo de primeira execução com 3 slides (flag AsyncStorage)
+    login.tsx     E-mail/senha + Google OAuth
     register.tsx
     profile/
-      reviews.tsx   Full "my reviews" list
-    _layout.tsx   Providers + auth/onboarding gate
-  components/     Shared UI — themed-text, themed-view, filter-sheet,
+      reviews.tsx   Lista completa de "minhas avaliações"
+    _layout.tsx   Providers + gate de auth/onboarding
+  components/     UI compartilhada — themed-text, themed-view, filter-sheet,
                   search-bar, star-picker, snackbar-provider, cafe-skeleton
   features/
     auth/         auth-context (session, signIn, signOut)
     cafes/        use-nearby-cafes, use-favorites, use-favorite-cafes, use-location, types
-    profile/      use-profile (display name, avatar upload)
+    profile/      use-profile (nome de exibição, upload de avatar)
     reviews/      use-reviews, use-submit-review, use-my-reviews, types
   hooks/          use-theme, use-color-scheme
-  lib/            env, supabase client
-  theme/          Design tokens (colors, spacing, type, radius, shadow)
+  lib/            env, cliente supabase
+  theme/          Design tokens (cores, espaçamento, tipografia, radius, sombra)
 supabase/
-  config.toml     Local stack + auth provider config
-  migrations/     Versioned SQL — 7 migrations (RLS + policy in the same file)
+  config.toml     Configuração do stack local + providers de auth
+  migrations/     SQL versionado — 7 migrations (RLS + policy no mesmo arquivo)
   functions/      Edge Functions (Deno):
-                    nearby-cafes  — Places proxy, cache-first, JWT-gated
-                    cafe-photo    — Places photo proxy, JWT-gated
-                    _shared/      — cors, places helpers
-  seed_dev.sql    15 SP cafes + cache entries for dev without Places API key
+                    nearby-cafes  — proxy Places, cache-first, JWT-gated
+                    cafe-photo    — proxy de fotos Places, JWT-gated
+                    _shared/      — cors, helpers Places
+  seed_dev.sql    15 cafés SP + entradas de cache para dev sem chave Places API
 scripts/
-  audit-rls.sh    Enforces "RLS + policy in the same migration"
-  git-hooks/      pre-commit runs the RLS audit on staged migrations
+  audit-rls.sh    Garante "RLS + policy na mesma migration"
+  git-hooks/      pre-commit roda a auditoria RLS nas migrations staged
 ```
 
-## Security decisions
+## Decisões de segurança
 
-- **Places API key never reaches the client.** It lives as a Supabase Edge Function
-  secret; the app calls the `nearby-cafes` function, which calls Google server-side.
-- **Client only gets public Supabase vars** (`EXPO_PUBLIC_SUPABASE_URL`, anon key).
-  The anon key is safe to ship because every table is protected by RLS.
-- **RLS on every public table, with policies in the same migration.** Enforced by
-  `scripts/audit-rls.sh` + a pre-commit hook — discipline alone is not trusted.
-- **Owner-scoped data**: `profiles`, `favorites`, and `reviews` (write) are scoped to
-  `auth.uid()`. Reviews are readable by all authenticated users. Cache tables are
-  written only by the service role.
-- **Edge Function requires a user JWT** (`verify_jwt = true`) — only signed-in users
-  can trigger paid Places lookups.
-- **PKCE OAuth flow**, foreground-only token refresh, no secrets in git
-  (`.env` ignored, `.env.example` tracked).
+- **Chave da Places API nunca chega ao cliente.** Vive como segredo da Edge Function do Supabase;
+  o app chama a função `nearby-cafes`, que chama o Google server-side.
+- **Cliente recebe apenas vars públicas do Supabase** (`EXPO_PUBLIC_SUPABASE_URL`, anon key).
+  A anon key é segura para distribuir porque toda tabela é protegida por RLS.
+- **RLS em toda tabela pública, com policies na mesma migration.** Garantido por
+  `scripts/audit-rls.sh` + hook de pre-commit — disciplina sozinha não é suficiente.
+- **Dados com escopo por dono**: `profiles`, `favorites` e `reviews` (escrita) são escopados a
+  `auth.uid()`. Reviews são legíveis por todos os usuários autenticados. Tabelas de cache só
+  são escritas pelo service role.
+- **Edge Function exige JWT do usuário** (`verify_jwt = true`) — somente usuários logados
+  podem disparar chamadas pagas à Places API.
+- **Fluxo OAuth PKCE**, refresh de token somente em foreground, nenhum segredo no git
+  (`.env` ignorado, `.env.example` rastreado).
 
-## Cost model
+## Modelo de custo
 
-Google Places API (New) bills per request; **caching is the cost control, not an
-optimization.** Ballpark (verify current pricing — it changes):
+A Google Places API (New) cobra por requisição; **o cache é o controle de custo, não uma
+otimização.** Estimativa (verificar preço atual — muda com frequência):
 
-- Nearby Search ≈ a few US cents per request.
-- Place Details ≈ a few US cents per request.
+- Nearby Search ≈ alguns centavos de dólar por requisição.
+- Place Details ≈ alguns centavos de dólar por requisição.
 
-Controls in place:
+Controles implementados:
 
-- `nearby-cafes` caches results per ~1.1km geo cell for 24h → repeat searches in an
-  area cost **zero** API calls.
-- `cafes` table stores normalized cafe records, reused across searches and the detail
-  screen.
-- The function clamps radius (≤ 50km). Different radius values are separate cache
-  entries (radius is part of the cell key).
-- `cafe-photo` proxies photo requests with 24h `Cache-Control` — photos are not stored
-  in Supabase Storage; they are fetched on demand and cached by the HTTP layer.
+- `nearby-cafes` cacheia resultados por célula geográfica de ~1,1km por 24h → buscas repetidas
+  na mesma área custam **zero** chamadas à API.
+- Tabela `cafes` armazena registros normalizados de cafés, reutilizados entre buscas e a tela
+  de detalhe.
+- A função limita o raio (≤ 50km). Raios diferentes são entradas de cache separadas (raio faz
+  parte da chave da célula).
+- `cafe-photo` faz proxy de fotos com `Cache-Control` de 24h — fotos não ficam armazenadas
+  no Supabase Storage; são buscadas sob demanda e cacheadas pela camada HTTP.
 
-A user browsing the same neighborhood repeatedly hits cache, not the paid API.
+Um usuário navegando no mesmo bairro repetidamente acerta o cache, não a API paga.

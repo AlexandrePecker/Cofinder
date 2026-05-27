@@ -1,54 +1,55 @@
-# Cofinder — living memory
+# Cofinder — memória viva
 
-Project state summary. Keep under ~200 lines; move detail to `docs/topics/*` if it grows.
-See `CLAUDE.md` (locked decisions) and `ARCHITECTURE.md` (full rationale).
+Resumo do estado do projeto. Manter abaixo de ~200 linhas; mover detalhes para `docs/topics/*` se crescer.
+Ver `CLAUDE.md` (decisões imutáveis) e `ARCHITECTURE.md` (justificativas completas).
 
-## Current state (2026-05-26)
+## Estado atual (2026-05-26)
 
-App feature-complete (v2). All migrations deployed. Edge Functions live.
+App feature-complete (v2). Todas as migrations deployadas. Edge Functions no ar.
 
-### What works end-to-end
-- Onboarding → email/senha auth → home with cafes (20km default)
-- Filter bottom sheet (radius 1–50km, rating, price, sort)
-- Search by name
-- Cafe detail: hero photo (`cafe-photo` Edge Function), mini-map, reviews
-- Favorites: toggle + list
-- Reviews: rate + comment, saved to DB, shown in cafe detail + profile
-- Profile: display name, avatar, stats (review count + avg rating), reviews list
+### O que funciona end-to-end
+- Onboarding → auth e-mail/senha → home com cafés (20km padrão)
+- Bottom sheet de filtros (raio 1–50km, avaliação, preço, ordenação)
+- Busca por nome
+- Detalhe do café: foto principal (Edge Function `cafe-photo`), mini-mapa, avaliações
+- Favoritos: toggle + lista
+- Avaliações: nota + comentário, salvo no DB, exibido no detalhe do café + perfil
+- Perfil: nome de exibição, avatar, estatísticas (contagem de avaliações + média), lista de avaliações
 
-### Migrations deployed (7 total)
+### Migrations deployadas (7 total)
 - `profiles`, `cafes_cache`, `favorites`, `avatars_storage`, `profiles_constraints`,
   `reviews`, `reviews_comment_length`
 
-### Edge Functions deployed
-- `nearby-cafes` — Places proxy, cache-first per geo cell, JWT-gated, MAX_RADIUS 50km
-- `cafe-photo` — Places photo proxy, JWT-gated, 24h Cache-Control
+### Edge Functions deployadas
+- `nearby-cafes` — proxy Places, cache-first por célula geo, JWT-gated, MAX_RADIUS 50km
+- `cafe-photo` — proxy de fotos Places, JWT-gated, Cache-Control 24h
 
-### Dev seed
-`supabase/seed_dev.sql` — 15 SP cafes + cache for 5 radius buckets. Run in SQL Editor
-to test without a Places API key.
+### Seed de desenvolvimento
+`supabase/seed_dev.sql` — 15 cafés SP + cache para 5 buckets de raio. Rodar no SQL Editor
+para testar sem chave da Places API.
 
 ## Backlog
 
-- Photo placeholder when `photo_ref` is null (hero shows empty view)
-- Dot animation in onboarding (instant jump, no Animated)
-- Regenerate Google OAuth client secret (exposed in old chat history)
-- `FilterBar` component in `filter-bar.tsx` is dead code — only exports types
-- `npm audit fix` — 11 moderate (uuid via xcode/expo-splash-screen, build tooling only)
+- Placeholder de foto quando `photo_ref` é null (hero mostra view vazia)
+- Animação de dots no onboarding (salto instantâneo, sem Animated)
+- Regenerar client secret do Google OAuth (exposto em histórico antigo de chat)
+- Componente `FilterBar` em `filter-bar.tsx` é código morto — só exporta tipos
+- `npm audit fix` — 11 moderadas (uuid via xcode/expo-splash-screen, só build tooling)
 
-## Gotchas / decisions worth remembering
+## Gotchas / decisões que valem lembrar
 
-- **Maps + location require a dev build** — Expo Go will not run them.
-- **Places key is server-side only.** Never call Places from the client; go through
-  the `nearby-cafes` Edge Function.
-- **MAX_RADIUS is 50km** (was 20km). Cell key includes radius, so different radii are
-  separate cache entries.
-- **SecureStore has a ~2KB limit** that breaks Supabase sessions → we use AsyncStorage.
-  Encrypted upgrade path is a "LargeSecureStore" adapter if needed.
-- **Local Google sign-in** needs `[auth.external.google] enabled = true` in config.toml
-  plus `SUPABASE_AUTH_EXTERNAL_GOOGLE_*` env vars (kept disabled by default so
-  `supabase start` works without credentials).
-- Deno Edge Functions are excluded from the Expo tsconfig + ESLint (different runtime).
-- Pre-commit hook only audits when `supabase/migrations/` files are staged.
-- `supabase.upsert()` can silently succeed (no error) but save nothing when RLS blocks it.
-  Always chain `.select()` and check `data.length > 0` for mutations that must persist.
+- **Mapas + localização exigem dev build** — Expo Go não roda.
+- **Chave da Places é server-side only.** Nunca chamar Places do cliente; passar pela
+  Edge Function `nearby-cafes`.
+- **MAX_RADIUS é 50km** (era 20km). A chave da célula inclui raio, então raios diferentes
+  são entradas de cache separadas.
+- **SecureStore tem limite de ~2KB** que quebra sessões do Supabase → usamos AsyncStorage.
+  Caminho de upgrade criptografado é um adapter "LargeSecureStore" se necessário.
+- **Google sign-in local** precisa de `[auth.external.google] enabled = true` no config.toml
+  mais vars `SUPABASE_AUTH_EXTERNAL_GOOGLE_*` (desabilitado por padrão para que
+  `supabase start` funcione sem credenciais).
+- Edge Functions Deno são excluídas do tsconfig + ESLint do Expo (runtime diferente).
+- Hook de pre-commit só audita quando arquivos de `supabase/migrations/` estão staged.
+- `supabase.upsert()` pode silenciosamente ter sucesso (sem erro) mas não salvar nada quando
+  RLS bloqueia. Sempre encadear `.select()` e checar `data.length > 0` em mutations que
+  precisam persistir.

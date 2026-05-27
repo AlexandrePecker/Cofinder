@@ -29,6 +29,8 @@ Projeto de portfólio — Expo SDK 56 + Supabase + Google Places API.
 - Perfil: nome, upload de avatar, estatísticas, lista de avaliações
 
 <img width="1138" height="792" alt="Captura de Tela 2026-05-27 às 14 36 10" src="https://github.com/user-attachments/assets/79211cc0-bf0d-4935-bfc0-d15a268b6149" />
+<img width="1076" height="776" alt="Captura de Tela 2026-05-27 às 14 36 24" src="https://github.com/user-attachments/assets/8d5a9f33-138d-4cd2-81ea-a617dec27409" />
+<img width="722" height="764" alt="Captura de Tela 2026-05-27 às 14 36 31" src="https://github.com/user-attachments/assets/68233d69-c73a-49c6-acd2-d773817d10b4" />
 
 
 ## Configuração

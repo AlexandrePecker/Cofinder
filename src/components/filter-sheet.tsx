@@ -2,9 +2,17 @@ import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
-import { type CafeFilters, type SortBy } from '@/components/filter-bar';
 import { useTheme } from '@/hooks/use-theme';
 import { FontSize, FontWeight, Radius, Spacing } from '@/theme';
+
+export type SortBy = 'default' | 'rating' | 'reviews';
+
+export interface CafeFilters {
+  minRating: number | null;
+  priceLevel: number | null;
+  radiusKm: number;
+  sortBy: SortBy;
+}
 
 interface FilterSheetProps {
   visible: boolean;

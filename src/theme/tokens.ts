@@ -26,7 +26,6 @@ export const FontSize = {
   lg: 18,
   xl: 22,
   xxl: 28,
-  display: 40,
 } as const;
 
 export const FontWeight = {
@@ -46,11 +45,6 @@ export const Fonts = Platform.select({
   },
   default: { sans: 'normal', serif: 'serif', rounded: 'normal', mono: 'monospace' },
 }) as { sans: string; serif: string; rounded: string; mono: string };
-
-export const Layout = {
-  maxContentWidth: 720,
-  screenPadding: Spacing.lg,
-} as const;
 
 export const Shadow = {
   card: Platform.select<ViewStyle>({

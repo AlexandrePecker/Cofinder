@@ -5,8 +5,12 @@ import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, View } fro
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CafeSkeletonList } from '@/components/cafe-skeleton';
-import { type CafeFilters } from '@/components/filter-bar';
-import { activeFilterCount, DEFAULT_FILTERS, FilterSheet } from '@/components/filter-sheet';
+import {
+  activeFilterCount,
+  type CafeFilters,
+  DEFAULT_FILTERS,
+  FilterSheet,
+} from '@/components/filter-sheet';
 import { SearchBar } from '@/components/search-bar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';

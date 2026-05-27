@@ -14,7 +14,6 @@ export const Colors = {
     primaryDeep: '#A86B38',
     primarySoft: '#E7C9A8',
     primaryMuted: '#C9B8A6',
-    accent: '#2F8F83',
 
     rating: '#E8A317',
     success: '#2C9251',
@@ -37,7 +36,6 @@ export const Colors = {
     primaryDeep: '#B27B45',
     primarySoft: '#8A6649',
     primaryMuted: '#8A6649',
-    accent: '#4FB3A4',
 
     rating: '#F2B733',
     success: '#5FB87E',

@@ -1,78 +1,78 @@
 # Cofinder
 
-Mobile app to discover well-rated cafes near your location.
+App mobile para descobrir cafés bem avaliados perto de você.
 
-Portfolio project — Expo SDK 56 + Supabase + Google Places API.
+Projeto de portfólio — Expo SDK 56 + Supabase + Google Places API.
 
 ## Stack
 
-| Layer | Choice |
+| Camada | Tecnologia |
 |---|---|
 | Mobile | Expo SDK 56 + React Native + TypeScript strict |
-| Navigation | Expo Router (file-based, type-safe) |
+| Navegação | Expo Router (file-based, type-safe) |
 | Auth + DB | Supabase (Postgres + Auth + RLS) |
-| Cafe data | Google Places API (New) — server-side only |
-| Server state | TanStack Query |
-| Maps | react-native-maps |
-| Styling | StyleSheet + design tokens (`src/theme`) |
+| Dados de cafés | Google Places API (New) — somente server-side |
+| Estado servidor | TanStack Query |
+| Mapas | react-native-maps |
+| Estilização | StyleSheet + design tokens (`src/theme`) |
 
-## Features
+## Funcionalidades
 
-- Onboarding (3 slides, shown once via AsyncStorage)
-- Auth: email/senha + Google OAuth (PKCE)
-- Home: cafes nearby with configurable radius (1–50km)
-- Filters: rating, price, sort — bottom sheet
-- Search by name (client-side)
-- Cafe detail: hero photo, mini-map, reviews
-- Favorites: toggle + dedicated list
-- Reviews: rate (1–5★) + comment, edit, community list
-- Profile: display name, avatar upload, stats, reviews list
+- Onboarding (3 slides, exibido uma vez via AsyncStorage)
+- Auth: e-mail/senha + Google OAuth (PKCE)
+- Home: cafés próximos com raio configurável (1–50km)
+- Filtros: avaliação, preço, ordenação — bottom sheet
+- Busca por nome (client-side)
+- Detalhe do café: foto principal, mini-mapa, avaliações
+- Favoritos: toggle + lista dedicada
+- Avaliações: nota (1–5★) + comentário, edição, lista da comunidade
+- Perfil: nome, upload de avatar, estatísticas, lista de avaliações
 
-## Setup
+## Configuração
 
 ```bash
 npm install
-cp .env.example .env   # fill EXPO_PUBLIC_SUPABASE_URL + EXPO_PUBLIC_SUPABASE_ANON_KEY
-bash scripts/install-hooks.sh   # pre-commit RLS audit (run once)
+cp .env.example .env   # preencher EXPO_PUBLIC_SUPABASE_URL + EXPO_PUBLIC_SUPABASE_ANON_KEY
+bash scripts/install-hooks.sh   # hook de auditoria RLS no pre-commit (rodar uma vez)
 ```
 
-Maps and geolocation require a **dev build** (not Expo Go):
+Mapas e geolocalização exigem **dev build** (não funciona no Expo Go):
 
 ```bash
-npx expo run:ios    # or: eas build --profile development
+npx expo run:ios    # ou: eas build --profile development
 ```
 
-Local Supabase backend:
+Backend Supabase local:
 
 ```bash
 supabase start               # Postgres + Auth + Studio + Edge runtime
-supabase db reset            # apply migrations + seed
-supabase functions serve     # run Edge Functions locally
+supabase db reset            # aplica migrations + seed
+supabase functions serve     # roda Edge Functions localmente
 ```
 
-To test without a Google Places API key, run `supabase/seed_dev.sql` in the
-Supabase SQL Editor — it inserts 15 São Paulo cafes with pre-warmed cache entries.
+Para testar sem chave da Google Places API, rode `supabase/seed_dev.sql` no
+SQL Editor do Supabase — insere 15 cafés de São Paulo com entradas de cache pré-aquecidas.
 
-## Development
+## Desenvolvimento
 
 ```bash
-npm start          # Expo dev server
+npm start          # servidor Expo
 npm run lint       # ESLint
 npm run typecheck  # tsc --noEmit
 npm run format     # Prettier
 ```
 
-## Architecture
+## Arquitetura
 
-See [`ARCHITECTURE.md`](ARCHITECTURE.md) for design rationale.
+Veja [`ARCHITECTURE.md`](ARCHITECTURE.md) para as decisões de design.
 
-The Places API key never reaches the client — it lives as a Supabase Edge Function
-secret. All cafe lookups go through the `nearby-cafes` Edge Function which caches
-results per ~1.1km geo cell for 24h.
+A chave da Places API nunca chega ao cliente — fica como segredo da Edge Function do Supabase.
+Todas as buscas de cafés passam pela Edge Function `nearby-cafes`, que cacheia os resultados
+por célula geográfica de ~1,1km por 24h.
 
-## Security
+## Segurança
 
-- RLS on every public table; enforced by `scripts/audit-rls.sh` + pre-commit hook
-- `EXPO_PUBLIC_*` vars are safe to ship (protected by RLS)
-- Places key + service role key are server-side only
-- `.env` is gitignored; `.env.example` tracks required vars
+- RLS em todas as tabelas públicas; verificado por `scripts/audit-rls.sh` + hook de pre-commit
+- Variáveis `EXPO_PUBLIC_*` são seguras para o cliente (protegidas por RLS)
+- Chave da Places API e service role ficam somente no servidor
+- `.env` está no gitignore; `.env.example` documenta as variáveis necessárias
